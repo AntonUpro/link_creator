@@ -1,0 +1,90 @@
+version: '3.1'
+
+networks:
+  link_creator:
+
+services:
+  link-creator-app:
+    container_name: link-creator-app
+    build:
+      context: .docker/app
+      dockerfile: Dockerfile-dev
+    volumes:
+      - ".:/var/www/link_creator"
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # For xdebug
+    environment:
+      XDEBUG_CONFIG: remote_host=host.docker.internal
+      PHP_IDE_CONFIG: serverName=link-creator-app
+    env_file:
+      - .env.local
+    networks:
+      - link_creator
+    hostname: link-creator.res
+
+  link-creator-db:
+    container_name: link-creator-db
+    image: postgres:alpine
+    volumes:
+      - /home/user/projects/my-projects/storeges/link_creator/postgres/:/var/lib/postgresql/data/
+    ports:
+      - 6440:5432
+    hostname: link-creator.res
+    env_file:
+      - .env.local
+    environment:
+      POSTGRES_PASSWORD: ${SQL_DB_PASSWORD:-developer}
+      POSTGRES_USER: ${SQL_DB_USER:-developer}
+      POSTGRES_DB: ${SQL_DB_NAME:-postgesql}
+    command: [ "postgres", "-c", "log_statement=all" ]
+    networks:
+      - link_creator
+
+  link-creator-nginx:
+    container_name: link-creator-nginx
+    image: nginx:alpine
+    ports:
+      - ${NGINX_PORT:-8122}:8122
+    volumes:
+      - ".:/var/www/link_creator"
+      - ".docker/nginx/conf.d/link-creator.conf:/etc/nginx/conf.d/default.conf"
+    depends_on:
+      - link-creator-app
+    networks:
+      - link_creator
+    hostname: link-creator.res
+
+#  mailer:
+#    container_name: link-creator-mailer
+#    image: axllent/mailpit
+#    ports:
+#      - "1025:1025"
+#      - "8025:8025"
+#    environment:
+#      MAILPIT_WEB_HOST: 0.0.0.0
+#      MP_SMTP_AUTH_ACCEPT_ANY: 1
+#      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+###> doctrine/doctrine-bundle ###
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      # You should definitely change the password in production
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+      # - ./docker/db/data:/var/lib/postgresql/data:rw
+###< doctrine/doctrine-bundle ###
+
+volumes:
+###> doctrine/doctrine-bundle ###
+  database_data:
+###< doctrine/doctrine-bundle ###
