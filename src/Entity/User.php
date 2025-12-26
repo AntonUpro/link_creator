@@ -1,20 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
-use App\Enum\Role;
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use DateTimeInterface;
-use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
-#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-#[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
+#[ORM\HasLifecycleCallbacks]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -22,29 +21,31 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180)]
+    #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
-    /**
-     * @var list<string> The user roles
-     */
     #[ORM\Column]
     private array $roles = [];
 
-    /**
-     * @var string The hashed password
-     */
     #[ORM\Column]
     private ?string $password = null;
 
+    #[ORM\Column(length: 64, unique: true, nullable: true)]
+    private ?string $apiToken = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ShortUrl::class)]
+    private Collection $shortUrls;
+
     #[ORM\Column]
-    private bool $isVerified = false;
+    private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime', nullable: false)]
-    private DateTimeInterface $createdAt;
+    #[ORM\Column]
+    private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\Column(name: 'updated_at', type: 'datetime', nullable: false)]
-    private DateTimeInterface $updatedAt;
+    public function __construct()
+    {
+        $this->shortUrls = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -63,33 +64,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
     public function getUserIdentifier(): string
     {
         return (string) $this->email;
     }
 
-    /**
-     * @see UserInterface
-     *
-     * @return list<string>
-     */
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = Role::ROLE_USER->value;
+        $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
     }
 
-    /**
-     * @param list<string> $roles
-     */
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
@@ -97,10 +84,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
-    public function getPassword(): ?string
+    public function getPassword(): string
     {
         return $this->password;
     }
@@ -112,52 +96,73 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
+    public function getApiToken(): ?string
+    {
+        return $this->apiToken;
+    }
+
+    public function setApiToken(?string $apiToken): static
+    {
+        $this->apiToken = $apiToken;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    #[ORM\PrePersist]
+    public function setCreatedAtValue(): void
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    #[ORM\PreUpdate]
+    public function setUpdatedAtValue(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
     public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
     }
 
-    public function isVerified(): bool
+    /**
+     * @return Collection<int, ShortUrl>
+     */
+    public function getShortUrls(): Collection
     {
-        return $this->isVerified;
+        return $this->shortUrls;
     }
 
-    public function setIsVerified(bool $isVerified): static
+    public function addShortUrl(ShortUrl $shortUrl): static
     {
-        $this->isVerified = $isVerified;
+        if (!$this->shortUrls->contains($shortUrl)) {
+            $this->shortUrls->add($shortUrl);
+            $shortUrl->setUser($this);
+        }
 
         return $this;
     }
 
-
-    public function getCreatedAt(): DateTimeInterface
+    public function removeShortUrl(ShortUrl $shortUrl): static
     {
-        return $this->createdAt;
-    }
+        if ($this->shortUrls->removeElement($shortUrl)) {
+            if ($shortUrl->getUser() === $this) {
+                $shortUrl->setUser(null);
+            }
+        }
 
-    public function setCreatedAt(DateTimeInterface $createdAt): void
-    {
-        $this->createdAt = $createdAt;
-    }
-
-    public function getUpdatedAt(): DateTimeInterface
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(DateTimeInterface $updatedAt): void
-    {
-        $this->updatedAt = $updatedAt;
-    }
-
-    #[ORM\PreUpdate]
-    #[ORM\PrePersist]
-    public function preUpdate(): void
-    {
-        $this->setUpdatedAt(new DateTimeImmutable());
+        return $this;
     }
 }

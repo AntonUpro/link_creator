@@ -1,0 +1,14 @@
+framework:
+    rate_limiter:
+        anonymous:
+            policy: 'token_bucket'
+            limit: 100
+            rate: { interval: '1 minute', amount: 10 }
+        api:
+            policy: 'token_bucket'
+            limit: 1000
+            rate: { interval: '1 hour', amount: 100 }
+#        shorten:
+#            policy: 'token_bucket'
+#            limit: 50
+#            rate: { interval: '1 hour', amount: 10 }
