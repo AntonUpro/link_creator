@@ -12,15 +12,15 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\GoneHttpException;
 
 class RedirectController extends AbstractController
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private ShortUrlRepository $shortUrlRepository
+        private readonly EntityManagerInterface $entityManager,
+        private readonly ShortUrlRepository $shortUrlRepository
     ) {}
 
     /**
@@ -34,20 +34,17 @@ class RedirectController extends AbstractController
     )]
     public function redirectToUrl(string $shortCode, Request $request): Response
     {
-        // Ищем активную ссылку
-        $shortUrl = $this->shortUrlRepository->findActiveByShortCode($shortCode);
+        // Ищем ссылку
+        $shortUrl = $this->shortUrlRepository->findOneBy(['shortCode' => $shortCode]);
 
         // Если ссылка не найдена
-        if (!$shortUrl) {
-            // Проверяем, существует ли когда-либо такая ссылка
-            $deactivatedUrl = $this->entityManager->getRepository(ShortUrl::class)
-                ->findOneBy(['shortCode' => $shortCode]);
-
-            if ($deactivatedUrl) {
-                throw new GoneHttpException('Эта ссылка больше не активна');
-            }
-
+        if (null === $shortUrl) {
             throw new NotFoundHttpException('Ссылка не найдена');
+        }
+
+        // Если ссылка не активна
+        if (! $shortUrl->isActive()) {
+            throw new GoneHttpException('Эта ссылка больше не активна');
         }
 
         // Проверяем не истекла ли ссылка

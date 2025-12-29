@@ -5,26 +5,26 @@ declare(strict_types=1);
 namespace App\Service;
 
 use Endroid\QrCode\Builder\BuilderInterface;
-use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\Label\Font\OpenSans;
 use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
-use Endroid\QrCode\Writer\SvgWriter;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 class QrCodeGenerator
 {
+    public const QR_CODES_DIRECTORY = '/public/uploads/qr-codes/';
+
     private string $uploadDir;
     private Filesystem $filesystem;
 
     public function __construct(
-        private KernelInterface $kernel,
-        private BuilderInterface $qrCodeBuilder
+        private readonly KernelInterface $kernel,
+        private readonly BuilderInterface $qrCodeBuilder
     ) {
-        $this->uploadDir = $this->kernel->getProjectDir() . '/public/uploads/qr-codes/';
+        $this->uploadDir = $this->kernel->getProjectDir() . self::QR_CODES_DIRECTORY;
         $this->filesystem = new Filesystem();
 
         // Создаем директорию если не существует
@@ -42,76 +42,22 @@ class QrCodeGenerator
         $filename = $this->generateFilename($url);
         $filepath = $this->uploadDir . $filename;
 
-        // Опции по умолчанию
-        $defaultOptions = [
-            'size' => 300,
-            'margin' => 10,
-            'foreground_color' => ['r' => 0, 'g' => 0, 'b' => 0, 'a' => 0],
-            'background_color' => ['r' => 255, 'g' => 255, 'b' => 255, 'a' => 0],
-            'logo_path' => null,
-            'logo_size' => 60,
-            'label' => null,
-            'label_font_size' => 16,
-            'format' => 'png', // png, svg, jpeg
-        ];
-
-        $options = array_merge($defaultOptions, $options);
-
         // Создаем QR код
-        $result = $this->qrCodeBuilder
-            ->data($url)
-            ->encoding(new Encoding('UTF-8'))
-            ->errorCorrectionLevel(ErrorCorrectionLevel::High)
-            ->size($options['size'])
-            ->margin($options['margin'])
-            ->roundBlockSizeMode(RoundBlockSizeMode::Margin)
-            ->validateResult(false);
-
-        // Настраиваем цвета
-        $result->foregroundColor(
-            $options['foreground_color']['r'],
-            $options['foreground_color']['g'],
-            $options['foreground_color']['b'],
-            $options['foreground_color']['a']
+        $result = $this->qrCodeBuilder->build(
+            writer: new PngWriter(),
+            data: $url,
+            encoding: new Encoding('UTF-8'),
+            size: 300,
+            margin: 10,
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
+            roundBlockSizeMode: RoundBlockSizeMode::Margin,
+            foregroundColor: new Color(0, 0, 0, 0),
+            backgroundColor: new Color(255, 255, 255, 0),
+            validateResult: false,
         );
-
-        $result->backgroundColor(
-            $options['background_color']['r'],
-            $options['background_color']['g'],
-            $options['background_color']['b'],
-            $options['background_color']['a']
-        );
-
-        // Добавляем логотип если указан
-        if ($options['logo_path'] && file_exists($options['logo_path'])) {
-            $result->logoPath($options['logo_path']);
-            $result->logoResizeToWidth($options['logo_size']);
-            $result->logoPunchoutBackground(true);
-        }
-
-        // Добавляем текст если указан
-        if ($options['label']) {
-            $result->labelText($options['label']);
-            $result->labelFont(new OpenSans($options['label_font_size']));
-            $result->labelAlignment(\Endroid\QrCode\Label\LabelAlignment::Center);
-        }
-
-        // Выбираем формат
-        switch ($options['format']) {
-            case 'svg':
-                $result->writer(new SvgWriter());
-                $filepath = str_replace('.png', '.svg', $filepath);
-                break;
-            case 'jpeg':
-                $result->writer(new \Endroid\QrCode\Writer\PngWriter());
-                $filepath = str_replace('.png', '.jpg', $filepath);
-                break;
-            default:
-                $result->writer(new PngWriter());
-        }
 
         // Сохраняем файл
-        $result->save($filepath);
+        $result->saveToFile($filepath);
 
         // Возвращаем относительный путь
         return 'uploads/qr-codes/' . basename($filepath);

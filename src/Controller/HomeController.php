@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\ShortUrl;
-use App\Form\ShortUrlType;
+use App\Repository\ShortUrlRepository;
 use App\Service\ShortUrlGenerator;
 use App\Service\QrCodeGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,7 +23,8 @@ final class HomeController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly ShortUrlGenerator $shortUrlGenerator,
         private readonly QrCodeGenerator $qrCodeGenerator,
-        private readonly RateLimiterFactory $anonymousLimiter
+        private readonly RateLimiterFactory $anonymousLimiter,
+        private readonly ShortUrlRepository $shortUrlRepository,
     ) {
     }
 
@@ -34,10 +35,9 @@ final class HomeController extends AbstractController
     public function index(Request $request): Response
     {
         // Получаем последние сокращенные ссылки для примера
-        $recentUrls = $this->entityManager->getRepository(ShortUrl::class)
-            ->findBy([], ['createdAt' => 'DESC'], 5);
+        $recentUrls = $this->shortUrlRepository->findBy([], ['createdAt' => 'DESC'], 5);
 
-        return $this->render('home/index.html.twig', [
+        return $this->render('home/index2.html.twig', [
             'recent_urls' => $recentUrls,
         ]);
     }
@@ -45,8 +45,8 @@ final class HomeController extends AbstractController
     /**
      * Создание короткой ссылки (AJAX/API endpoint)
      */
-    #[Route('/shorten', name: 'app_shorten', methods: ['POST'])]
-    public function shorten(Request $request): JsonResponse
+    #[Route('/shorten', name: 'create_link', methods: ['POST'])]
+    public function createLink(Request $request): JsonResponse
     {
         // Проверка rate limiting
         $limiter = $this->anonymousLimiter->create($request->getClientIp());
@@ -72,8 +72,8 @@ final class HomeController extends AbstractController
 
         $longUrl = $data['url'];
         $customAlias = $data['customAlias'] ?? null;
-        $expiresAt = isset($data['expiresIn'])
-            ? new \DateTime('+' . $data['expiresIn'] . ' days')
+        $expiresAt = isset($data['expires'])
+            ? new \DateTime('+' . $data['expires'] . ' days')
             : null;
 
         // Валидация URL
@@ -85,7 +85,7 @@ final class HomeController extends AbstractController
         }
 
         // Проверка кастомного алиаса
-        if ($customAlias && $this->entityManager->getRepository(ShortUrl::class)->customAliasExists($customAlias)) {
+        if ($customAlias && $this->shortUrlRepository->customAliasExists($customAlias)) {
             return new JsonResponse([
                 'success' => false,
                 'error' => 'Этот псевдоним уже занят. Выберите другой.',
@@ -127,6 +127,7 @@ final class HomeController extends AbstractController
                 'success' => true,
                 'shortUrl' => $shortUrl->getShortUrl(),
                 'shortCode' => $shortCode,
+                'originalUrl' => $longUrl,
                 'qrCode' => $this->getQrCodeUrl($qrCodePath),
                 'expiresAt' => $shortUrl->getExpiresAt()?->format('Y-m-d H:i:s'),
                 'clicks' => $shortUrl->getClicks(),
@@ -150,8 +151,7 @@ final class HomeController extends AbstractController
     #[Route('/link/{shortCode}', name: 'app_link_info', methods: ['GET'])]
     public function linkInfo(string $shortCode): Response
     {
-        $shortUrl = $this->entityManager->getRepository(ShortUrl::class)
-            ->findActiveByShortCode($shortCode);
+        $shortUrl = $this->shortUrlRepository->findActiveByShortCode($shortCode);
 
         if (!$shortUrl) {
             throw $this->createNotFoundException('Ссылка не найдена');
@@ -178,8 +178,7 @@ final class HomeController extends AbstractController
             ]);
         }
 
-        $exists = $this->entityManager->getRepository(ShortUrl::class)
-            ->customAliasExists($customAlias);
+        $exists = $this->shortUrlRepository->customAliasExists($customAlias);
 
         return new JsonResponse([
             'available' => !$exists,
@@ -193,16 +192,13 @@ final class HomeController extends AbstractController
     #[Route('/qr/{shortCode}', name: 'app_qr_code', methods: ['GET'])]
     public function getQrCode(string $shortCode): Response
     {
-        $shortUrl = $this->entityManager->getRepository(ShortUrl::class)
-            ->findActiveByShortCode($shortCode);
-
-        if (!$shortUrl || !$shortUrl->getQrCodePath()) {
-            throw $this->createNotFoundException('QR код не найден');
+        $fileName = basename($shortCode) . '.png';
+        $fullPath = __DIR__ . '/../../public/uploads/qr-codes/' . $fileName;
+        if (!file_exists($fullPath)) {
+            throw new FileNotFoundException("QR code не найден: {$fileName}");
         }
 
-        return $this->file(
-            $this->getParameter('qr_codes_directory') . '/' . basename($shortUrl->getQrCodePath())
-        );
+        return $this->file($fullPath);
     }
 
     /**

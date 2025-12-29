@@ -132,7 +132,9 @@
                 document.getElementById('shortUrlDisplay').value = data.shortUrl;
 
                 // Генерируем QR код (используем Google Charts API для простоты)
-                const qrUrl = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(data.shortUrl)}&choe=UTF-8`;
+                const qrUrl = data.qrCode.startsWith('http')
+                    ? data.qrCode
+                    : window.location.origin + data.qrCode;
                 document.getElementById('qrCodeContainer').innerHTML = `<img src="${qrUrl}" alt="QR Code" class="mx-auto">`;
 
                 // Показываем контейнер с результатом

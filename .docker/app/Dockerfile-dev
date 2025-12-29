@@ -1,7 +1,11 @@
 FROM php:8.3-fpm
+
+ARG UID=1001
+ARG GID=1001
+
 RUN apt-get update \
-    && apt-get install -y zlib1g-dev g++ git libicu-dev zip libzip-dev zip libpq-dev \
-    && docker-php-ext-install intl opcache pdo pgsql pdo_mysql pdo_pgsql \
+    && apt-get install -y zlib1g-dev g++ git libicu-dev zip libzip-dev zip libpq-dev libpng-dev libwebp-dev libxpm-dev \
+    && docker-php-ext-install intl opcache pdo pgsql pdo_mysql pdo_pgsql gd \
     && pecl install apcu \
     && docker-php-ext-enable apcu \
     && docker-php-ext-configure zip \
@@ -11,4 +15,7 @@ RUN apt-get update \
 WORKDIR /var/www/link_creator
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN curl -sS https://get.symfony.com/cli/installer | bash
+RUN usermod -u $UID www-data -s /bin/bash && groupmod -g $GID www-data
+RUN chown -R www-data:www-data /var/www/link_creator
 COPY ./conf/local-dev.ini /usr/local/etc/php/php.ini
+USER www-data

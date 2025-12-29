@@ -1,0 +1,223 @@
+/* Стили для QR-кода */
+
+.qr-code-container {
+    margin-top: 25px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: white;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.qr-code-wrapper {
+    padding: 20px;
+}
+
+.qr-code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border);
+}
+
+.qr-code-header h4 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--dark);
+    margin: 0;
+}
+
+.qr-code-header i {
+    color: var(--primary);
+}
+
+.close-qr {
+    background: none;
+    border: none;
+    color: var(--gray);
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close-qr:hover {
+    color: var(--danger);
+}
+
+.qr-code-content {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.qr-code-image {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    border: 10px solid white;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    background: white;
+}
+
+.qr-code-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.qr-code-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 4px;
+}
+
+.qr-code-image:hover .qr-code-overlay {
+    opacity: 1;
+}
+
+.qr-code-overlay .btn-icon {
+    background: white;
+    color: var(--dark);
+    width: 45px;
+    height: 45px;
+}
+
+.qr-code-overlay .btn-icon:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.qr-code-info h5 {
+    margin: 0 0 10px 0;
+    color: var(--dark);
+    font-size: 1.2rem;
+}
+
+.qr-code-info p {
+    color: var(--gray);
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.qr-details {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 20px;
+}
+
+.qr-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.qr-detail-item:last-child {
+    margin-bottom: 0;
+}
+
+.qr-detail-item i {
+    color: var(--primary);
+    width: 20px;
+    text-align: center;
+}
+
+.qr-detail-item a {
+    color: var(--primary);
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.qr-detail-item a:hover {
+    text-decoration: underline;
+}
+
+.qr-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.share-qr-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Адаптивность для QR-кода */
+@media (max-width: 768px) {
+    .qr-code-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .qr-code-image {
+        margin: 0 auto;
+        width: 150px;
+        height: 150px;
+    }
+
+    .qr-detail-item {
+        justify-content: center;
+    }
+
+    .qr-actions {
+        justify-content: center;
+    }
+
+    .qr-code-overlay {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.5);
+    }
+}
+
+/* Анимация появления QR-кода */
+@keyframes qrAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.qr-code-container[style*="display: block"] {
+    animation: qrAppear 0.3s ease;
+}
+
+/* Улучшения для кнопки QR в основной группе */
+.qr-toggle-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}

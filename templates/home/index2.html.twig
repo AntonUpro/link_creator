@@ -1,0 +1,524 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Сокращение ссылок — QuickLink{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        const resultContainer = document.getElementById('resultContainer');
+
+        document.getElementById('shortenForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const longUrl = document.getElementById('longUrl').value;
+            const customAlias = document.getElementById('customAlias').value;
+            const expires = document.getElementById('expires').value;
+            const btn = document.getElementById('shortenBtn');
+
+            // Показываем загрузку
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Сокращаем...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/shorten', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        url: longUrl,
+                        customAlias: customAlias || null,
+                        expires: expires || null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Показываем результат
+                    // document.getElementById('shortUrlDisplay').value = data.shortUrl;
+                    // document.getElementById('shortUrlDisplay').href = data.shortUrl;
+                    // document.getElementById('shortUrlDisplayTitle').value = data.shortUrl;
+                    // document.getElementById('shortUrlDisplayTitle').title = data.shortUrl;
+                    // shortUrlDisplayTitle
+
+                    displayResult(data)
+
+                    // // Генерируем QR код (используем Google Charts API для простоты)
+                    // const qrUrl = data.qrCode.startsWith('http')
+                    //     ? data.qrCode
+                    //     : window.location.origin + data.qrCode;
+                    // document.getElementById('qrCodeContainer').innerHTML = `<img src="${qrUrl}" alt="QR Code" class="mx-auto">`;
+
+                    // Показываем контейнер с результатом
+                    document.getElementById('resultContainer').style.display = 'flex';
+                } else {
+                    alert('Ошибка: ' + data.error);
+                }
+            } catch (error) {
+                alert('Произошла ошибка при сокращении ссылки');
+                console.error(error);
+            } finally {
+                btn.innerHTML = '<i class="fas fa-link mr-2"></i>Сократить ссылку';
+                btn.disabled = false;
+            }
+        });
+
+        function copyToClipboard() {
+            const input = document.getElementById('shortUrlDisplay');
+            input.select();
+            document.execCommand('copy');
+            alert('Ссылка скопирована в буфер обмена!');
+        }
+
+        function downloadQRCode() {
+            const qrImg = document.querySelector('#qrCodeContainer img');
+            if (qrImg) {
+                const link = document.createElement('a');
+                link.href = qrImg.src;
+                link.download = 'qrcode.png';
+                link.click();
+            }
+        }
+
+
+        // Функция отображения результата с QR-кодом
+        function displayResult(data) {
+            const resultHTML = `
+        <div class="result" id="result">
+    <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
+    </div>
+    <div class="result-content">
+        <p class="original-url" title="${data.originalUrl}">${data.originalUrl}</p>
+        <div class="short-url-group">
+            <a href="${data.shortUrl}" target="_blank" class="short-url" id="shortUrl">${data.shortUrl}</a>
+            <button class="copy-btn btn-secondary" data-clipboard-text="${data.shortUrl}">
+                <i class="far fa-copy"></i> Копировать
+            </button>
+            <button class="btn-icon qr-toggle-btn" title="Показать QR-код">
+                <i class="fas fa-qrcode"></i>
+            </button>
+            <a href="${data.stats_url}" class="btn-icon" title="Статистика">
+                <i class="fas fa-chart-bar"></i>
+            </a>
+        </div>
+
+        <div class="qr-code-container" style="display: none;">
+            <div class="qr-code-wrapper">
+                <div class="qr-code-header">
+                    <h4><i class="fas fa-qrcode"></i> QR-код</h4>
+                    <button class="btn-icon close-qr" title="Закрыть">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="qr-code-content">
+                    <div class="qr-code-image">
+                        <img src="${data.qr_code}" alt="QR-код для ${data.shortUrl}" loading="lazy"
+                            onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.shortUrl)}'">
+                        <div class="qr-code-overlay">
+                            <a href="${data.qr_code}" download="qr-code-${data.short_code}.png" class="btn-icon"
+                                title="Скачать PNG">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <button class="btn-icon copy-qr-btn" data-clipboard-text="${data.shortUrl}"
+                                title="Копировать ссылку из QR-кода">
+                                <i class="far fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="qr-code-info">
+                        <h5>Используйте QR-код</h5>
+                        <p>Отсканируйте камерой телефона для быстрого перехода</p>
+                        <div class="qr-details">
+                            <div class="qr-detail-item">
+                                <i class="fas fa-link"></i>
+                                <span>Ссылка: <a href="${data.shortUrl}" target="_blank">${data.shortUrl}</a></span>
+                            </div>
+                            <div class="qr-detail-item">
+                                <i class="fas fa-expand-alt"></i>
+                                <span>Размер: 150x150 px</span>
+                            </div>
+                            <div class="qr-detail-item">
+                                <i class="fas fa-download"></i>
+                                <span>Формат: PNG</span>
+                            </div>
+                        </div>
+                        <div class="qr-actions">
+                            <button class="btn-secondary share-qr-btn" data-url="${data.shortUrl}"
+                                data-qr="${data.qr_code}">
+                                <i class="fas fa-share-alt"></i> Поделиться
+                            </button>
+                            <a href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(data.shortUrl)}&format=svg"
+                                download="qr-code-${data.short_code}.svg" class="btn-outline">
+                                <i class="fas fa-file-image"></i> SVG
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-meta">
+            <span><i class="far fa-clock"></i> Создано: ${data.created_at}</span>
+            ${data.expires_at ? `<span><i class="fas fa-hourglass-end"></i> Истекает: ${data.expires_at}</span>` : ''}
+            <span><i class="fas fa-mouse-pointer"></i> Кликов: ${data.clicks}</span>
+            <span><i class="fas fa-fingerprint"></i> Код: ${data.short_code}</span>
+        </div>
+    </div>
+</div>
+            `;
+
+            resultContainer.innerHTML = resultHTML;
+
+            // Обновляем инстанс Clipboard.js
+            new ClipboardJS('.copy-btn');
+            new ClipboardJS('.copy-qr-btn');
+
+            // Обработчики для QR-кода
+            const qrToggleBtn = document.querySelector('.qr-toggle-btn');
+            const qrContainer = document.querySelector('.qr-code-container');
+            const closeQrBtn = document.querySelector('.close-qr');
+
+            if (qrToggleBtn && qrContainer) {
+                qrToggleBtn.addEventListener('click', () => {
+                    qrContainer.style.display = qrContainer.style.display === 'none' ? 'block' : 'none';
+                    qrToggleBtn.innerHTML = qrContainer.style.display === 'none'
+                        ? '<i class="fas fa-qrcode"></i>'
+                        : '<i class="fas fa-times"></i>';
+                    qrToggleBtn.title = qrContainer.style.display === 'none'
+                        ? 'Показать QR-код'
+                        : 'Скрыть QR-код';
+
+                    // Плавное появление
+                    if (qrContainer.style.display === 'block') {
+                        qrContainer.style.opacity = '0';
+                        qrContainer.style.transform = 'translateY(-10px)';
+                        setTimeout(() => {
+                            qrContainer.style.transition = 'all 0.3s ease';
+                            qrContainer.style.opacity = '1';
+                            qrContainer.style.transform = 'translateY(0)';
+                        }, 10);
+                    }
+                });
+            }
+
+            if (closeQrBtn && qrContainer) {
+                closeQrBtn.addEventListener('click', () => {
+                    qrContainer.style.display = 'none';
+                    qrToggleBtn.innerHTML = '<i class="fas fa-qrcode"></i>';
+                    qrToggleBtn.title = 'Показать QR-код';
+                });
+            }
+
+            // Обработчик для кнопки "Поделиться"
+            const shareQrBtn = document.querySelector('.share-qr-btn');
+            if (shareQrBtn && navigator.share) {
+                shareQrBtn.addEventListener('click', async () => {
+                    try {
+                        await navigator.share({
+                            title: 'QR-код для ссылки',
+                            text: `Используйте этот QR-код для перехода: ${data.shortUrl}`,
+                            url: data.shortUrl
+                        });
+                        showNotification('QR-код успешно отправлен!', 'success');
+                    } catch (error) {
+                        if (error.name !== 'AbortError') {
+                            // Копируем ссылку в буфер как fallback
+                            navigator.clipboard.writeText(data.shortUrl);
+                            showNotification('Ссылка скопирована в буфер!', 'info');
+                        }
+                    }
+                });
+            } else if (shareQrBtn) {
+                shareQrBtn.style.display = 'none'; // Скрываем если нет API Share
+            }
+
+            // Прокрутка к результату с анимацией
+            setTimeout(() => {
+                resultContainer.scrollIntoView({behavior: 'smooth', block: 'center'});
+            }, 300);
+        }
+
+
+    </script>
+{% endblock %}
+
+{% block body %}
+    <!-- Герой-секция -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Сокращайте ссылки, увеличивайте охват</h1>
+                <p class="subtitle">Профессиональный инструмент для создания коротких ссылок, QR-кодов и аналитики
+                    переходов. Бесплатно и без ограничений.</p>
+
+                <!-- Форма создания ссылки -->
+                <div class="shortener-card">
+                    <form id="shortenForm" method="POST" action="{{ path('create_link') }}">
+                        <div class="input-group">
+                            <input type="url"
+                                   id="longUrl"
+                                   name="url"
+                                   placeholder="https://example.com/very-long-url..."
+                                   required
+                                   autocomplete="off">
+                            <button type="submit" class="btn-primary" id="shortenBtn">
+                                <i class="fas fa-magic"></i> Сократить
+                            </button>
+                        </div>
+                        <div class="advanced-options">
+                            <div class="option">
+                                <label for="customAlias"><i class="fas fa-pen"></i> Свой вариант</label>
+                                <input type="text"
+                                       id="customAlias"
+                                       name="customAlias"
+                                       placeholder="my-link (необязательно)"
+                                       autocomplete="off">
+                            </div>
+                            <div class="option">
+                                <label><i class="fas fa-calendar"></i> Срок действия</label>
+                                <select name="expires" id="expires">
+                                    <option value="">Бессрочно</option>
+                                    <option value="1">1 день</option>
+                                    <option value="7">1 неделя</option>
+                                    <option value="30">1 месяц</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div id="resultContainer"></div>
+
+                    <!-- Результат (показывается после создания) -->
+
+                    {#                    <div class="result" id="resultContainer"> #}
+                    {#                        <div class="success-icon"> #}
+                    {#                            <i class="fas fa-check-circle"></i> #}
+                    {#                        </div> #}
+                    {#                        <div class="result-content"> #}
+                    {#                            <p class="original-url" >Ссылка</p> #}
+                    {#                            <div class="short-url-group"> #}
+                    {#                                <a href="Ссылка 1" target="_blank" class="short-url" #}
+                    {#                                   id="shortUrlDisplay">Ссылка 2</a> #}
+                    {#                                <button class="copy-btn btn-secondary" data-clipboard-text="Копирую"> #}
+                    {#                                    <i class="far fa-copy"></i> Копировать #}
+                    {#                                </button> #}
+                    {#                                <a href="#" class="btn-icon"><i class="fas fa-qrcode"></i></a> #}
+                    {#                                <a href="#" class="btn-icon"><i class="fas fa-chart-bar"></i></a> #}
+                    {#                            </div> #}
+                    {#                        </div> #}
+                    {#                    </div> #}
+
+                    {#                    <div class="result" id="resultContainer"> #}
+                    {#                        <div class="success-icon"> #}
+                    {#                            <i class="fas fa-check-circle"></i> #}
+                    {#                        </div> #}
+                    {#                        <div class="result-content"> #}
+                    {#                            <p class="original-url" id="shortUrlDisplayTitle"></p> #}
+                    {#                            <div class="short-url-group"> #}
+                    {#                                <a href="${data.shortUrl}" target="_blank" class="short-url" id="shortUrlDisplay">dfjdm</a> #}
+                    {#                                <button class="copy-btn btn-secondary" data-clipboard-text="${data.shortUrl}"> #}
+                    {#                                    <i class="far fa-copy"></i> Копировать #}
+                    {#                                </button> #}
+                    {#                                <button class="btn-icon qr-toggle-btn" title="Показать QR-код"> #}
+                    {#                                    <i class="fas fa-qrcode"></i> #}
+                    {#                                </button> #}
+                    {#                                <a href="${data.stats_url}" class="btn-icon" title="Статистика"> #}
+                    {#                                    <i class="fas fa-chart-bar"></i> #}
+                    {#                                </a> #}
+                    {#                            </div> #}
+
+                    {#                            <div class="qr-code-container" style="display: none;"> #}
+                    {#                                <div class="qr-code-wrapper"> #}
+                    {#                                    <div class="qr-code-header"> #}
+                    {#                                        <h4><i class="fas fa-qrcode"></i> QR-код</h4> #}
+                    {#                                        <button class="btn-icon close-qr" title="Закрыть"> #}
+                    {#                                            <i class="fas fa-times"></i> #}
+                    {#                                        </button> #}
+                    {#                                    </div> #}
+                    {#                                    <div class="qr-code-content"> #}
+                    {#                                        <div class="qr-code-image"> #}
+                    {#                                            <img src="${data.qr_code}" alt="QR-код для ${data.shortUrl}" loading="lazy" #}
+                    {#                                                 onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.shortUrl)}'"> #}
+                    {#                                            <div class="qr-code-overlay"> #}
+                    {#                                                <a href="${data.qr_code}" download="qr-code-${data.short_code}.png" class="btn-icon" #}
+                    {#                                                   title="Скачать PNG"> #}
+                    {#                                                    <i class="fas fa-download"></i> #}
+                    {#                                                </a> #}
+                    {#                                                <button class="btn-icon copy-qr-btn" data-clipboard-text="${data.shortUrl}" #}
+                    {#                                                        title="Копировать ссылку из QR-кода"> #}
+                    {#                                                    <i class="far fa-copy"></i> #}
+                    {#                                                </button> #}
+                    {#                                            </div> #}
+                    {#                                        </div> #}
+                    {#                                        <div class="qr-code-info"> #}
+                    {#                                            <h5>Используйте QR-код</h5> #}
+                    {#                                            <p>Отсканируйте камерой телефона для быстрого перехода</p> #}
+                    {#                                            <div class="qr-details"> #}
+                    {#                                                <div class="qr-detail-item"> #}
+                    {#                                                    <i class="fas fa-link"></i> #}
+                    {#                                                    <span>Ссылка: <a href="${data.shortUrl}" target="_blank">${truncateText(data.shortUrl, 30)}</a></span> #}
+                    {#                                                </div> #}
+                    {#                                                <div class="qr-detail-item"> #}
+                    {#                                                    <i class="fas fa-expand-alt"></i> #}
+                    {#                                                    <span>Размер: 150x150 px</span> #}
+                    {#                                                </div> #}
+                    {#                                                <div class="qr-detail-item"> #}
+                    {#                                                    <i class="fas fa-download"></i> #}
+                    {#                                                    <span>Формат: PNG</span> #}
+                    {#                                                </div> #}
+                    {#                                            </div> #}
+                    {#                                            <div class="qr-actions"> #}
+                    {#                                                <button class="btn-secondary share-qr-btn" data-url="${data.shortUrl}" #}
+                    {#                                                        data-qr="${data.qr_code}"> #}
+                    {#                                                    <i class="fas fa-share-alt"></i> Поделиться #}
+                    {#                                                </button> #}
+                    {#                                                <a href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(data.shortUrl)}&format=svg" #}
+                    {#                                                   download="qr-code-${data.short_code}.svg" class="btn-outline"> #}
+                    {#                                                    <i class="fas fa-file-image"></i> SVG #}
+                    {#                                                </a> #}
+                    {#                                            </div> #}
+                    {#                                        </div> #}
+                    {#                                    </div> #}
+                    {#                                </div> #}
+                    {#                            </div> #}
+
+                    {#                            <div class="result-meta"> #}
+                    {#                                <span><i class="far fa-clock"></i> Создано: ${formatDate(data.created_at)}</span> #}
+                    {#                                ${data.expires_at ? `<span><i class="fas fa-hourglass-end"></i> Истекает: #}
+                    {#                ${formatDate(data.expires_at)}</span>` : ''} #}
+                    {#                                <span><i class="fas fa-mouse-pointer"></i> Кликов: ${data.clicks}</span> #}
+                    {#                                <span><i class="fas fa-fingerprint"></i> Код: ${data.short_code}</span> #}
+                    {#                            </div> #}
+                    {#                        </div> #}
+                    {#                    </div> #}
+
+
+                </div>
+
+                <div class="hero-stats">
+                    <div class="stat">
+                        <strong>1.5M+</strong>
+                        <span>сокращено ссылок</span>
+                    </div>
+                    <div class="stat">
+                        <strong>99.9%</strong>
+                        <span>время работы</span>
+                    </div>
+                    <div class="stat">
+                        <strong>∞</strong>
+                        <span>бесплатно всегда</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Возможности -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Почему выбирают QuickLink?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: #4cd96422; color: #4cd964;">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Мгновенное создание</h3>
+                    <p>Сокращайте ссылки в один клик. Наш алгоритм работает быстрее, чем вы успеете моргнуть.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: #5ac8fa22; color: #5ac8fa;">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Детальная аналитика</h3>
+                    <p>Отслеживайте клики, географию, устройства и реферальные источники в реальном времени.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: #ff950022; color: #ff9500;">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <h3>QR-коды</h3>
+                    <p>Автоматическая генерация QR-кодов для каждой ссылки с кастомизацией дизайна.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: #ff2d5522; color: #ff2d55;">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Безопасность</h3>
+                    <p>Проверка ссылок на вредоносность, защита от спама и возможность установки пароля.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Как это работает -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">Как это работает?</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Вставьте ссылку</h3>
+                    <p>Скопируйте длинный URL в поле выше</p>
+                </div>
+                <div class="step-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Настройте</h3>
+                    <p>Выберите псевдоним и срок действия</p>
+                </div>
+                <div class="step-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Готово!</h3>
+                    <p>Используйте короткую ссылку и делитесь</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- API секция -->
+    <section class="api-section" id="api">
+        <div class="container">
+            <h2 class="section-title">API для разработчиков</h2>
+            <div class="api-demo">
+                <div class="code-block">
+                    <pre><code>
+// Пример создания ссылки через API
+POST https://quicklink.ru/api/v1/shorten
+Content-Type: application/json
+Authorization: Bearer YOUR_API_KEY
+
+{
+  "url": "https://example.com/very-long-url",
+  "alias": "my-product",
+  "expires": "30d"
+}
+
+// Ответ
+{
+  "shortUrl": "https://ql.ink/my-product",
+  "qr_code": "https://ql.ink/qr/my-product.png",
+  "stats": "https://ql.ink/stats/my-product"
+}
+                    </code></pre>
+                </div>
+                <div class="api-features">
+                    <h3><i class="fas fa-rocket"></i> Мощный REST API</h3>
+                    <ul>
+                        <li><i class="fas fa-check"></i> 10,000 запросов в месяц бесплатно</li>
+                        <li><i class="fas fa-check"></i> Документация на OpenAPI 3.0</li>
+                        <li><i class="fas fa-check"></i> Поддержка на всех языках программирования</li>
+                        <li><i class="fas fa-check"></i> Webhooks для уведомлений</li>
+                    </ul>
+                    <a href="#" class="btn-primary"><i class="fas fa-book"></i> Документация API</a>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

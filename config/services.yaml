@@ -29,11 +29,6 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
-#
-#    App\Controller\HomeController:
-#        bind:
-#            $anonymousApiLimiter: '@anonymous.limiter'
-#        tags: ['controller.service_arguments']
 
     Endroid\QrCode\Builder\BuilderInterface:
         class: Endroid\QrCode\Builder\Builder
