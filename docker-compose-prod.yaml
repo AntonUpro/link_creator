@@ -16,6 +16,7 @@ services:
     environment:
       PHP_OPCACHE_ENABLE: 1
       APP_DEBUG: false
+      APP_ENV: prod
     env_file:
       - .env.local
     networks:
