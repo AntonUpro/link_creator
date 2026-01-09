@@ -72,9 +72,23 @@ final class HomeController extends AbstractController
 
         $longUrl = $data['url'];
         $customAlias = $data['customAlias'] ?? null;
-        $expiresAt = isset($data['expires'])
-            ? new \DateTime('+' . $data['expires'] . ' days')
-            : null;
+
+        // Handle expiration date - either from date string or from days (for backward compatibility)
+        $expiresAt = null;
+        if (isset($data['expires_at']) && !empty($data['expires_at'])) {
+            // New format: specific date
+            $expiresAt = new \DateTime($data['expires_at']);
+        } elseif (isset($data['expires']) && !empty($data['expires'])) {
+            // Old format: number of days (for backward compatibility)
+            $expiresAt = new \DateTime('+' . $data['expires'] . ' days');
+        }
+
+        if ($expiresAt && $expiresAt < new \DateTime()) {
+            return new JsonResponse([
+                'success' => false,
+                'error' => 'Некорректная дата истечения срока действия ссылки.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
 
         // Валидация URL
         if (!filter_var($longUrl, FILTER_VALIDATE_URL)) {

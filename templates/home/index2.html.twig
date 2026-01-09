@@ -12,7 +12,7 @@
 
             const longUrl = document.getElementById('longUrl').value;
             const customAlias = document.getElementById('customAlias').value;
-            const expires = document.getElementById('expires').value;
+            const expiresAt = document.getElementById('expires_at').value;
             const btn = document.getElementById('shortenBtn');
 
             // Показываем загрузку
@@ -28,7 +28,7 @@
                     body: JSON.stringify({
                         url: longUrl,
                         customAlias: customAlias || null,
-                        expires: expires || null
+                        expires_at: expiresAt || null
                     })
                 });
 
@@ -278,12 +278,7 @@
                             </div>
                             <div class="option">
                                 <label><i class="fas fa-calendar"></i> Срок действия</label>
-                                <select name="expires" id="expires">
-                                    <option value="">Бессрочно</option>
-                                    <option value="1">1 день</option>
-                                    <option value="7">1 неделя</option>
-                                    <option value="30">1 месяц</option>
-                                </select>
+                                <input type="datetime-local" name="expires_at" id="expires_at" min="{{ 'now'|date('Y-m-d') }}">
                             </div>
                         </div>
                     </form>

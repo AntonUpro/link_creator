@@ -54,8 +54,17 @@ class ApiController extends AbstractController
         }
 
         $longUrl = $data['url'];
-        $customAlias = $data['custom_alias'] ?? null;
-        $expiresIn = $data['expires_in'] ?? null; // в днях
+        $customAlias = $data['customAlias'] ?? null;
+        
+        // Handle expiration date - either from date string or from days (for backward compatibility)
+        $expiresAt = null;
+        if (isset($data['expires_at']) && !empty($data['expires_at'])) {
+            // New format: specific date
+            $expiresAt = new \DateTime($data['expires_at']);
+        } elseif (isset($data['expires_in']) && !empty($data['expires_in'])) {
+            // Old format: number of days
+            $expiresAt = new \DateTime('+' . $data['expires_in'] . ' days');
+        }
 
         // Валидация URL
         if (!filter_var($longUrl, FILTER_VALIDATE_URL)) {
@@ -76,8 +85,7 @@ class ApiController extends AbstractController
                 $shortUrl->setCustomAlias($customAlias);
             }
 
-            if ($expiresIn) {
-                $expiresAt = new \DateTime('+' . $expiresIn . ' days');
+            if ($expiresAt) {
                 $shortUrl->setExpiresAt($expiresAt);
             }
 
@@ -200,7 +208,13 @@ class ApiController extends AbstractController
             $shortUrl->setIsActive((bool) $data['is_active']);
         }
 
-        if (isset($data['expires_in'])) {
+        // Handle expiration date - either from date string or from days (for backward compatibility)
+        if (isset($data['expires_at']) && !empty($data['expires_at'])) {
+            // New format: specific date
+            $expiresAt = new \DateTime($data['expires_at']);
+            $shortUrl->setExpiresAt($expiresAt);
+        } elseif (isset($data['expires_in']) && !empty($data['expires_in'])) {
+            // Old format: number of days
             $expiresAt = new \DateTime('+' . $data['expires_in'] . ' days');
             $shortUrl->setExpiresAt($expiresAt);
         }
