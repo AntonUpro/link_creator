@@ -30,7 +30,7 @@ class RedirectController extends AbstractController
         name: 'app_redirect',
         methods: ['GET'],
         requirements: ['shortCode' => '[a-zA-Z0-9_-]+'],
-        priority: 1 // Высокий приоритет для коротких маршрутов
+        priority: -1 // Низкий приоритет для отсутствия конфликтов
     )]
     public function redirectToUrl(string $shortCode, Request $request): Response
     {

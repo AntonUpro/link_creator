@@ -177,7 +177,8 @@ class ShortUrlGenerator
         $reservedWords = [
             'admin', 'api', 'dashboard', 'login', 'logout', 'register',
             'profile', 'settings', 'help', 'about', 'contact', 'privacy',
-            'terms', 'shorten', 'qr', 'preview', 'stats', 'link'
+            'terms', 'shorten', 'qr', 'preview', 'stats', 'link',
+            'oauth', 'oauth/connect', 'oauth/callback', 'home'
         ];
 
         if (in_array(strtolower($code), $reservedWords)) {
@@ -205,6 +206,18 @@ class ShortUrlGenerator
 
         if (strlen($alias) > 64) {
             $alias = substr($alias, 0, 64);
+        }
+
+        // Проверяем зарезервированные слова
+        $reservedWords = [
+            'admin', 'api', 'dashboard', 'login', 'logout', 'register',
+            'profile', 'settings', 'help', 'about', 'contact', 'privacy',
+            'terms', 'shorten', 'qr', 'preview', 'stats', 'link',
+            'oauth', 'oauth/connect', 'oauth/callback', 'home'
+        ];
+
+        if (in_array(strtolower($alias), $reservedWords)) {
+            throw new \InvalidArgumentException('Этот алиас зарезервирован и не может быть использован');
         }
 
         // Проверяем уникальность

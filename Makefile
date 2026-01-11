@@ -12,7 +12,7 @@ ps: ## initialize database and rabbitMq
 	docker compose ps
 
 down: ## initialize database and rabbitMq
-	docker compose down -v --remove-orphans
+	docker compose down --remove-orphans
 
 exec: ## initialize database and rabbitMq
 	docker exec -it link-creator-app bash

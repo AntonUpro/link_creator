@@ -311,6 +311,80 @@ body {
     font-size: 0.95rem;
 }
 
+/* Недавние ссылки */
+.recent-links-section {
+    padding: 60px 0;
+    background: white;
+}
+
+.recent-links-section .section-title {
+    text-align: left;
+    margin-bottom: 30px;
+}
+
+.recent-links-container {
+    background: white;
+    border-radius: var(--radius);
+    padding: 25px;
+    box-shadow: var(--shadow);
+}
+
+.recent-link-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s;
+}
+
+.recent-link-item:hover {
+    background: #f8f9fa;
+}
+
+.recent-link-item:last-child {
+    border-bottom: none;
+}
+
+.recent-link-info {
+    flex: 1;
+}
+
+.recent-link-original {
+    color: var(--gray);
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    word-break: break-all;
+}
+
+.recent-link-short {
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.recent-link-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.8rem;
+    color: var(--gray);
+    margin-top: 5px;
+}
+
+.recent-link-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Разделитель */
+.divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin: 30px 0;
+}
+
 /* Особенности */
 .section-title {
     text-align: center;
@@ -412,6 +486,10 @@ body {
     font-family: 'Courier New', monospace;
     font-size: 0.9rem;
     line-height: 1.5;
+}
+
+.features {
+    margin-top: 50px;
 }
 
 .api-features ul {
@@ -532,6 +610,16 @@ footer {
 
     .advanced-options {
         grid-template-columns: 1fr;
+    }
+
+    .recent-link-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .recent-link-actions {
+        align-self: flex-end;
     }
 }
 
@@ -657,13 +745,6 @@ footer {
 }
 
 /* Секция недавних ссылок */
-.recent-links-container {
-    background: white;
-    border-radius: var(--radius);
-    padding: 25px;
-    box-shadow: var(--shadow);
-}
-
 .recent-link-item {
     display: flex;
     justify-content: space-between;

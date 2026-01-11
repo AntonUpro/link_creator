@@ -33,7 +33,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 64, unique: true, nullable: true)]
     private ?string $apiToken = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ShortUrl::class)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ShortUrl::class, fetch: 'EXTRA_LAZY')]
     private Collection $shortUrls;
 
     #[ORM\Column]

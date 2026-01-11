@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\ShortUrl;
+use App\Entity\User;
 use App\Repository\ShortUrlRepository;
 use App\Service\ShortUrlGenerator;
 use App\Service\QrCodeGenerator;
@@ -34,10 +35,15 @@ final class HomeController extends AbstractController
     #[Route('/', name: 'app_home', methods: ['GET'])]
     public function index(Request $request): Response
     {
-        // Получаем последние сокращенные ссылки для примера
-        $recentUrls = $this->shortUrlRepository->findBy([], ['createdAt' => 'DESC'], 5);
+        $user = $this->getUser();
+        $recentUrls = [];
 
-        return $this->render('home/index2.html.twig', [
+        if ($user instanceof User) {
+            // Получаем последние сокращенные ссылки для примера
+            $recentUrls = $this->shortUrlRepository->findBy(['user' => $user], ['createdAt' => 'DESC'], 5);
+        }
+
+        return $this->render('home/index.html.twig', [
             'recent_urls' => $recentUrls,
         ]);
     }

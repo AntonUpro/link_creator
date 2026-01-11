@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Регистрация — QuickLink{% endblock %}
+
+{% block body %}
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1>Создайте аккаунт</h1>
+            <p class="subtitle">Зарегистрируйтесь, чтобы получить доступ к расширенным возможностям</p>
+
+            <div class="shortener-card">
+                {{ form_start(registration_form) }}
+                    <div class="input-group">
+                        <div class="form-group">
+                            {{ form_label(registration_form.email) }}
+                            {{ form_widget(registration_form.email, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(registration_form.email) }}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form_label(registration_form.password.first) }}
+                            {{ form_widget(registration_form.password.first, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(registration_form.password.first) }}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form_label(registration_form.password.second) }}
+                            {{ form_widget(registration_form.password.second, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(registration_form.password.second) }}
+                        </div>
+                        
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-user-plus"></i> Зарегистрироваться
+                        </button>
+                    </div>
+                {{ form_end(registration_form) }}
+
+                <div class="auth-options">
+                    <p>Или войдите через:</p>
+                    <a href="{{ path('oauth_connect', {'provider': 'yandex'}) }}" class="btn-secondary">
+                        <i class="fab fa-yandex"></i> Yandex
+                    </a>
+                </div>
+
+                <div class="auth-switch">
+                    <p>Уже есть аккаунт? <a href="{{ path('app_login') }}">Войти</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 18px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+        
+        .form-error {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+        
+        .auth-options {
+            text-align: center;
+            margin: 25px 0;
+            padding-top: 25px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .auth-options .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .auth-switch {
+            text-align: center;
+            margin-top: 25px;
+        }
+        
+        .auth-switch a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+    </style>
+{% endblock %}

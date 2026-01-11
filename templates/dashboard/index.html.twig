@@ -1,0 +1,867 @@
+{% extends 'dashboard/base-dashboard.html.twig' %}
+
+{% block title %}Панель управления - GoLink{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+
+
+        .table td {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        .short-url-cell {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .page-link {
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #4a5568;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .page-link:hover,
+        .page-link.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #4a5568;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .stats-cards {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            min-width: 200px;
+            z-index: 1000;
+            display: none;
+            padding: 10px 0;
+        }
+
+        .dropdown.open .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 10px 20px;
+            display: block;
+            color: #4a5568;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .dropdown-item:hover {
+            background: #f7fafc;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #a0aec0;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .copy-btn {
+            background: #edf2f7;
+            border: none;
+            border-radius: 6px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-left: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-link"></i>
+                    GoLink
+                </h3>
+                <small style="opacity: 0.8; font-size: 12px;">Панель управления</small>
+            </div>
+
+            <div class="sidebar-menu">
+                <ul>
+                    <li>
+                        <a href="{{ path('app_dashboard') }}" class="{{ app.request.get('_route') == 'app_dashboard' ? 'active' : '' }}">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Обзор</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('app_dashboard') }}">
+                            <i class="fas fa-link"></i>
+                            <span>Мои ссылки</span>
+                            <span style="margin-left: auto; background: rgba(255,255,255,0.2); border-radius: 10px; padding: 2px 8px; font-size: 12px;">
+                            {{ total }}
+                        </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('app_dashboard_create') }}">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Создать ссылку</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Аналитика</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-qrcode"></i>
+                            <span>QR коды</span>
+                        </a>
+                    </li>
+
+                    <li style="margin-top: 30px;">
+                        <div style="padding: 0 20px; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 10px;">
+                            УПРАВЛЕНИЕ
+                        </div>
+                    </li>
+
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-cog"></i>
+                            <span>Настройки</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-user"></i>
+                            <span>Профиль</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-credit-card"></i>
+                            <span>Тарифы</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-users"></i>
+                            <span>Команда</span>
+                        </a>
+                    </li>
+
+                    <li style="margin-top: 30px;">
+                        <div style="padding: 0 20px; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 10px;">
+                            ДОПОЛНИТЕЛЬНО
+                        </div>
+                    </li>
+
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-plug"></i>
+                            <span>API</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-download"></i>
+                            <span>Экспорт данных</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Помощь</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px;">
+                <a href="{{ path('app_home') }}" style="display: flex; align-items: center; color: rgba(255,255,255,0.8); text-decoration: none; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.1);">
+                    <i class="fas fa-home" style="margin-right: 10px;"></i>
+                    На главную
+                </a>
+                <a href="{{ path('app_logout') }}" style="display: flex; align-items: center; color: rgba(255,255,255,0.8); text-decoration: none; padding: 10px; border-radius: 8px; margin-top: 10px; background: rgba(255,255,255,0.1);">
+                    <i class="fas fa-sign-out-alt" style="margin-right: 10px;"></i>
+                    Выйти
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Navigation -->
+            <div class="top-nav">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h2 style="margin: 0; font-size: 24px; color: #2d3748;">Мои ссылки</h2>
+                </div>
+
+                <div class="user-menu">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Поиск ссылок..." id="searchInput">
+                    </div>
+
+                    <div class="dropdown" id="userDropdown">
+                        <div class="user-avatar" onclick="toggleDropdown('userDropdown')">
+                            {{ app.user.email|first|upper }}
+                        </div>
+                        <div class="dropdown-menu">
+                            <a href="#" class="dropdown-item">
+                                <i class="fas fa-user" style="margin-right: 10px;"></i>
+                                Профиль
+                            </a>
+                            <a href="#" class="dropdown-item">
+                                <i class="fas fa-cog" style="margin-right: 10px;"></i>
+                                Настройки
+                            </a>
+                            <div style="height: 1px; background: #e2e8f0; margin: 10px 0;"></div>
+                            <a href="{{ path('app_logout') }}" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt" style="margin-right: 10px;"></i>
+                                Выйти
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <div class="stat-value">{{ total }}</div>
+                    <div class="stat-label">Всего ссылок</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+                        <i class="fas fa-mouse-pointer"></i>
+                    </div>
+                    <div class="stat-value">{{ total_clicks|default(0) }}</div>
+                    <div class="stat-label">Всего кликов</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-value">{{ avg_clicks_per_link|default(0)|round(1) }}</div>
+                    <div class="stat-label">Кликов на ссылку</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white;">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-value">{{ expired_links|default(0) }}</div>
+                    <div class="stat-label">Истекших ссылок</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+                <a href="{{ path('app_dashboard_create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Создать новую ссылку
+                </a>
+                <button class="btn" style="background: #edf2f7; color: #4a5568;" onclick="showImportModal()">
+                    <i class="fas fa-file-import"></i>
+                    Импорт ссылок
+                </button>
+                <button class="btn" style="background: #edf2f7; color: #4a5568;">
+                    <i class="fas fa-filter"></i>
+                    Фильтры
+                </button>
+            </div>
+
+            <!-- Links Table -->
+            <div class="links-table-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0; color: #2d3748;">Недавние ссылки</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <select style="padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; background: white;">
+                            <option>Все статусы</option>
+                            <option>Активные</option>
+                            <option>Неактивные</option>
+                            <option>Истекшие</option>
+                        </select>
+                        <select style="padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; background: white;">
+                            <option>Сортировка по дате</option>
+                            <option>По кликам</option>
+                            <option>По алфавиту</option>
+                        </select>
+                    </div>
+                </div>
+
+                {% if links|length > 0 %}
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Короткая ссылка</th>
+                            <th>Оригинальный URL</th>
+                            <th>Клики</th>
+                            <th>Статус</th>
+                            <th>Создано</th>
+                            <th>Действия</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for link in links %}
+                            <tr data-link-id="{{ link.id }}">
+                                <td class="short-url-cell">
+                                    <div style="display: flex; align-items: center;">
+                                        <a href="{{ link.shortUrl }}" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 500;">
+                                            {{ link.shortUrl|replace({'https://': ''}) }}
+                                        </a>
+                                        <button class="copy-btn" onclick="copyToClipboard('{{ link.shortUrl }}', this)">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                    {% if link.customAlias %}
+                                        <small style="color: #718096;">Алиас: {{ link.customAlias }}</small>
+                                    {% endif %}
+                                </td>
+                                <td style="max-width: 300px;">
+                                    <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        {{ link.longUrl }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="font-weight: bold; color: #2d3748;">{{ link.clicks }}</span>
+                                    {% if link.clicks > 0 %}
+                                        <br>
+                                        <small style="color: #718096;">↗ {{ (link.clicks / (link.createdAt.diff(date()).days + 1))|round(1) }}/день</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if link.isActive %}
+                                        {% if link.isExpired %}
+                                            <span class="badge badge-warning">
+                                                <i class="fas fa-clock"></i> Истекла
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-check-circle"></i> Активна
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge badge-danger">
+                                            <i class="fas fa-ban"></i> Неактивна
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ link.createdAt|date('d.m.Y') }}
+                                    <br>
+                                    <small style="color: #718096;">{{ link.createdAt|date('H:i') }}</small>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 5px;">
+                                        <a href="{{ path('app_dashboard_stats', {'id': link.id}) }}" class="btn btn-sm" style="background: #e0f2fe; color: #0369a1;">
+                                            <i class="fas fa-chart-bar"></i>
+                                        </a>
+                                        <a href="{{ path('app_dashboard_edit', {'id': link.id}) }}" class="btn btn-sm" style="background: #f0f9ff; color: #0ea5e9;">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{{ path('app_qr_code', {'shortCode': link.shortCode}) }}" class="btn btn-sm" style="background: #f0fdf4; color: #15803d;" target="_blank">
+                                            <i class="fas fa-qrcode"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteLink({{ link.id }})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination -->
+                    {% if pages > 1 %}
+                        <div class="pagination">
+                            {% if page > 1 %}
+                                <a href="{{ path('app_dashboard', {'page': page - 1}) }}" class="page-link">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            {% endif %}
+
+                            {% for i in range(1, pages) %}
+                                {% if i >= page - 2 and i <= page + 2 %}
+                                    <a href="{{ path('app_dashboard', {'page': i}) }}" class="page-link {{ i == page ? 'active' : '' }}">
+                                        {{ i }}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page < pages %}
+                                <a href="{{ path('app_dashboard', {'page': page + 1}) }}" class="page-link">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-link"></i>
+                        <h3>У вас пока нет ссылок</h3>
+                        <p>Создайте свою первую короткую ссылку прямо сейчас!</p>
+                        <a href="{{ path('app_dashboard_create') }}" class="btn btn-primary" style="margin-top: 20px;">
+                            <i class="fas fa-plus"></i>
+                            Создать первую ссылку
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div class="modal" id="importModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin: 0;">Импорт ссылок</h3>
+                <button onclick="closeImportModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #718096;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Загрузите CSV файл со ссылками в формате:</p>
+                <pre style="background: #f7fafc; padding: 15px; border-radius: 8px; font-size: 12px;">
+URL, custom_alias (optional)
+https://example.com/page1, my-page1
+https://example.com/page2, my-page2
+https://example.com/page3,
+            </pre>
+
+                <div style="border: 2px dashed #e2e8f0; border-radius: 8px; padding: 40px; text-align: center; margin: 20px 0;">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #a0aec0; margin-bottom: 15px;"></i>
+                    <p>Перетащите CSV файл сюда или кликните для выбора</p>
+                    <input type="file" accept=".csv" style="display: none;" id="csvFileInput">
+                    <button onclick="document.getElementById('csvFileInput').click()" class="btn" style="background: #edf2f7; color: #4a5568;">
+                        Выбрать файл
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button onclick="closeImportModal()" class="btn" style="background: #edf2f7; color: #4a5568;">
+                        Отмена
+                    </button>
+                    <button onclick="processImport()" class="btn btn-primary">
+                        <i class="fas fa-upload"></i>
+                        Импортировать
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+
+        // Dropdown toggle
+        function toggleDropdown(dropdownId) {
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.classList.toggle('open');
+
+            // Close other dropdowns
+            document.querySelectorAll('.dropdown').forEach(d => {
+                if (d.id !== dropdownId) {
+                    d.classList.remove('open');
+                }
+            });
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown').forEach(d => {
+                    d.classList.remove('open');
+                });
+            }
+        });
+
+        // Copy to clipboard
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(function() {
+                const originalIcon = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                button.style.background = '#d1fae5';
+                button.style.color = '#065f46';
+
+                setTimeout(function() {
+                    button.innerHTML = originalIcon;
+                    button.style.background = '';
+                    button.style.color = '';
+                }, 2000);
+
+                // Show notification
+                showNotification('Ссылка скопирована в буфер обмена!', 'success');
+            });
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Delete link
+        function deleteLink(linkId) {
+            if (confirm('Вы уверены, что хотите удалить эту ссылку?')) {
+                fetch(`/dashboard/links/${linkId}/delete`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.querySelector(`tr[data-link-id="${linkId}"]`).remove();
+                            showNotification('Ссылка успешно удалена!', 'success');
+
+                            // Update stats
+                            updateStats();
+                        } else {
+                            showNotification(data.error || 'Ошибка при удалении', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showNotification('Произошла ошибка', 'error');
+                        console.error(error);
+                    });
+            }
+        }
+
+        // Modal functions
+        function showImportModal() {
+            document.getElementById('importModal').classList.add('open');
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').classList.remove('open');
+        }
+
+        function processImport() {
+            const fileInput = document.getElementById('csvFileInput');
+            if (fileInput.files.length === 0) {
+                showNotification('Пожалуйста, выберите файл', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            fetch('/dashboard/import', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(`Успешно импортировано ${data.count} ссылок`, 'success');
+                        closeImportModal();
+                        location.reload(); // Reload page to show new links
+                    } else {
+                        showNotification(data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    showNotification('Ошибка при импорте', 'error');
+                    console.error(error);
+                });
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            document.querySelectorAll('.notification').forEach(n => n.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+            <div style="position: fixed; top: 20px; right: 20px; background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                         color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                         z-index: 9999; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()" style="margin-left: 15px; background: none; border: none; color: white; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+            document.body.appendChild(notification);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        // Update stats (example function)
+        function updateStats() {
+            // In a real app, you would fetch updated stats from the server
+            console.log('Stats should be updated here');
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + / to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+
+            // Escape to close modals
+            if (e.key === 'Escape') {
+                closeImportModal();
+                document.querySelectorAll('.dropdown').forEach(d => {
+                    d.classList.remove('open');
+                });
+            }
+        });
+
+        // Initialize tooltips
+        document.querySelectorAll('[title]').forEach(element => {
+            element.addEventListener('mouseenter', function() {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip';
+                tooltip.textContent = this.title;
+                tooltip.style.position = 'absolute';
+                tooltip.style.background = '#2d3748';
+                tooltip.style.color = 'white';
+                tooltip.style.padding = '5px 10px';
+                tooltip.style.borderRadius = '4px';
+                tooltip.style.fontSize = '12px';
+                tooltip.style.zIndex = '10000';
+
+                document.body.appendChild(tooltip);
+
+                const rect = this.getBoundingClientRect();
+                tooltip.style.top = (rect.top - tooltip.offsetHeight - 5) + 'px';
+                tooltip.style.left = (rect.left + rect.width/2 - tooltip.offsetWidth/2) + 'px';
+
+                this._tooltip = tooltip;
+            });
+
+            element.addEventListener('mouseleave', function() {
+                if (this._tooltip) {
+                    this._tooltip.remove();
+                    this._tooltip = null;
+                }
+            });
+        });
+    </script>
+{% endblock %}
