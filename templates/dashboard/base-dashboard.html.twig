@@ -10,12 +10,9 @@
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+    <link rel="stylesheet" href="{{ asset('styles/dashbord/dashbord.css') }}">
     {% block stylesheets %}{% endblock %}
 
-    <style>
-        {{ include('dashboard/styles-dashbord.css.twig') }}
-    </style>
 </head>
 <body>
 {% block body %}{% endblock %}

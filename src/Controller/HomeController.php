@@ -4,28 +4,32 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\ShortUrl;
+use App\Constraint\CreateLinkConstraint;
+use App\Dto\CreateShortUrl;
 use App\Entity\User;
+use App\Exception\AliasExistException;
 use App\Repository\ShortUrlRepository;
-use App\Service\ShortUrlGenerator;
-use App\Service\QrCodeGenerator;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Service\ShortUrlService;
+use DateTimeImmutable;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class HomeController extends AbstractController
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly ShortUrlGenerator $shortUrlGenerator,
-        private readonly QrCodeGenerator $qrCodeGenerator,
         private readonly RateLimiterFactory $anonymousLimiter,
         private readonly ShortUrlRepository $shortUrlRepository,
+        private readonly CreateLinkConstraint $createLinkConstraint,
+        private readonly ShortUrlService $shortUrlService,
+        private readonly ValidatorInterface $validator,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -69,100 +73,53 @@ final class HomeController extends AbstractController
         // Получаем данные из запроса
         $data = json_decode($request->getContent(), true);
 
-        if (!$data || !isset($data['url'])) {
+        // валидируем данные
+        $error = $this->validator->validate($data, $this->createLinkConstraint->getConstraint());
+
+        if (count($error) > 0) {
             return new JsonResponse([
                 'success' => false,
-                'error' => 'Неверный формат запроса. Укажите URL.',
+                'error' => 'Ошибка валидации данных: ' . $error->get(1)->getMessage(),
+                'field' => $error->get(1)->getPropertyPath(),
             ], Response::HTTP_BAD_REQUEST);
-        }
-
-        $longUrl = $data['url'];
-        $customAlias = $data['customAlias'] ?? null;
-
-        // Handle expiration date - either from date string or from days (for backward compatibility)
-        $expiresAt = null;
-        if (isset($data['expires_at']) && !empty($data['expires_at'])) {
-            // New format: specific date
-            $expiresAt = new \DateTime($data['expires_at']);
-        } elseif (isset($data['expires']) && !empty($data['expires'])) {
-            // Old format: number of days (for backward compatibility)
-            $expiresAt = new \DateTime('+' . $data['expires'] . ' days');
-        }
-
-        if ($expiresAt && $expiresAt < new \DateTime()) {
-            return new JsonResponse([
-                'success' => false,
-                'error' => 'Некорректная дата истечения срока действия ссылки.',
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
-        // Валидация URL
-        if (!filter_var($longUrl, FILTER_VALIDATE_URL)) {
-            return new JsonResponse([
-                'success' => false,
-                'error' => 'Некорректный URL. Укажите полный URL (с http:// или https://).',
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
-        // Проверка кастомного алиаса
-        if ($customAlias && $this->shortUrlRepository->customAliasExists($customAlias)) {
-            return new JsonResponse([
-                'success' => false,
-                'error' => 'Этот псевдоним уже занят. Выберите другой.',
-            ], Response::HTTP_CONFLICT);
         }
 
         try {
-            // Создаем сущность ShortUrl
-            $shortUrl = new ShortUrl();
-            $shortUrl->setLongUrl($longUrl);
+            $shortUrl = $this->shortUrlService->createShortLink(new CreateShortUrl(
+                url: $data['url'],
+                customAlias: $data['customAlias'] ?? null,
+                user: $this->getUser(),
+                password: $data['password'] ?? null,
+                expiresAt: isset($data['expires_at']) ? new DateTimeImmutable($data['expires_at']) : null,
+            ));
 
-            // Устанавливаем пользователя, если авторизован
-            if ($this->getUser()) {
-                $shortUrl->setUser($this->getUser());
-            }
-
-            // Генерируем короткий код
-            $shortCode = $customAlias ?? $this->shortUrlGenerator->generate();
-            $shortUrl->setShortCode($shortCode);
-
-            if ($customAlias) {
-                $shortUrl->setCustomAlias($customAlias);
-            }
-
-            if ($expiresAt) {
-                $shortUrl->setExpiresAt($expiresAt);
-            }
-
-            // Генерируем QR код
-            $qrCodePath = $this->qrCodeGenerator->generateForUrl($shortUrl->getShortUrl());
-            $shortUrl->setQrCodePath($qrCodePath);
-
-            // Сохраняем в базу
-            $this->entityManager->persist($shortUrl);
-            $this->entityManager->flush();
-
-            // Возвращаем успешный ответ
-            return new JsonResponse([
-                'success' => true,
-                'shortUrl' => $shortUrl->getShortUrl(),
-                'shortCode' => $shortCode,
-                'originalUrl' => $longUrl,
-                'qrCode' => $this->getQrCodeUrl($qrCodePath),
-                'expiresAt' => $shortUrl->getExpiresAt()?->format('Y-m-d H:i:s'),
-                'clicks' => $shortUrl->getClicks(),
-                'createdAt' => $shortUrl->getCreatedAt()->format('Y-m-d H:i:s'),
-            ]);
-
-        } catch (\Exception $e) {
-            // Логируем ошибку
-            error_log('Error creating short URL: ' . $e->getMessage());
-
+        } catch (AliasExistException $exception){
             return new JsonResponse([
                 'success' => false,
-                'error' => 'Произошла ошибка при создании короткой ссылки.',
+                'error' => $exception->getMessage(),
+            ], Response::HTTP_CONFLICT);
+        } catch (\Throwable $exception) {
+            $this->logger->error('Ошибка при создании короткой ссылки: ' . $exception->getMessage(), [
+                'exception' => $exception->getTraceAsString(),
+                'previous' => $exception->getPrevious()?->getMessage(),
+            ]);
+            return new JsonResponse([
+                'success' => false,
+                'error' => 'Произошла ошибка. Попробуйте позже.',
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+
+        // Возвращаем успешный ответ
+        return new JsonResponse([
+            'success' => true,
+            'shortUrl' => $shortUrl->getShortUrl(),
+            'shortCode' => $shortUrl->getShortCode(),
+            'originalUrl' => $shortUrl->getLongUrl(),
+            'qrCode' => $this->getQrCodeUrl($shortUrl->getQrCodePath()),
+            'expiresAt' => $shortUrl->getExpiresAt()?->format('Y-m-d H:i:s'),
+            'clicks' => $shortUrl->getClicks(),
+            'createdAt' => $shortUrl->getCreatedAt()->format('Y-m-d H:i:s'),
+        ]);
     }
 
     /**

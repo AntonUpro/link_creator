@@ -29,8 +29,8 @@ class ShortUrlType extends AbstractType
                     'class' => 'form-control',
                 ],
                 'constraints' => [
-                    new NotBlank(['message' => 'Пожалуйста, введите ссылку']),
-                    new Url(['message' => 'Пожалуйста, введите корректный URL']),
+                    new NotBlank(message: 'Пожалуйста, введите ссылку'),
+                    new Url(message: 'Пожалуйста, введите корректный URL'),
                 ],
             ])
             ->add('customAlias', TextType::class, [
@@ -41,14 +41,14 @@ class ShortUrlType extends AbstractType
                     'class' => 'form-control',
                 ],
                 'constraints' => [
-                    new Length([
-                        'max' => 64,
-                        'maxMessage' => 'Алиас не должен превышать 64 символов',
-                    ]),
-                    new Regex([
-                        'pattern' => '/^[a-zA-Z0-9_-]+$/',
-                        'message' => 'Алиас может содержать только буквы, цифры, дефисы и подчеркивания',
-                    ]),
+                    new Length(
+                        max: 64,
+                        maxMessage:  'Алиас не должен превышать 64 символов',
+                    ),
+                    new Regex(
+                        pattern:  '/^[a-zA-Z0-9_-]+$/',
+                        message:  'Алиас может содержать только буквы, цифры, дефисы и подчеркивания',
+                    ),
                 ],
             ])
             ->add('expiresAt', DateTimeType::class, [

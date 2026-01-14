@@ -1,0 +1,177 @@
+{% extends 'dashboard/base-dashboard.html.twig' %}
+
+{% block title %}Создать ссылку - GoLink{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .create-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #667eea;
+            text-decoration: none;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-help {
+            font-size: 14px;
+            color: #718096;
+            margin-top: 6px;
+        }
+
+        .preview-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .preview-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="create-container">
+        <a href="{{ path('app_dashboard') }}" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            Вернуться к списку ссылок
+        </a>
+
+        <div class="form-card">
+            <h1 style="font-size: 32px; margin-bottom: 10px; color: #2d3748;">Создать короткую ссылку</h1>
+            <p style="color: #718096; margin-bottom: 30px;">Заполните форму ниже чтобы создать новую короткую ссылку</p>
+
+            {{ form_start(form) }}
+
+            <div class="form-group">
+                {{ form_label(form.longUrl) }}
+                {{ form_widget(form.longUrl, {'attr': {'class': 'form-control', 'placeholder': 'https://example.com/very-long-url'}}) }}
+                <div class="form-help">Введите полный URL с http:// или https://</div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.customAlias) }}
+                {{ form_widget(form.customAlias, {'attr': {'class': 'form-control', 'placeholder': 'my-custom-link'}}) }}
+                <div class="form-help">Необязательно. Только буквы, цифры, дефисы и подчеркивания</div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.expiresAt) }}
+                {{ form_widget(form.expiresAt, {'attr': {'class': 'form-control'}}) }}
+                <div class="form-help">Необязательно. Дата и время когда ссылка перестанет работать</div>
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                {{ form_widget(form.isActive, {'attr': {'style': 'width: auto;'}}) }}
+                {{ form_label(form.isActive) }}
+            </div>
+
+            <div class="preview-section">
+                <div class="preview-title">Предпросмотр</div>
+                <div id="preview" style="color: #718096;">
+                    Введите URL чтобы увидеть предпросмотр короткой ссылки
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 30px; width: 100%; padding: 15px; font-size: 16px;">
+                <i class="fas fa-plus"></i>
+                Создать ссылку
+            </button>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+
+    <script>
+        // Live preview
+        const longUrlInput = document.getElementById('{{ form.longUrl.vars.id }}');
+        const customAliasInput = document.getElementById('{{ form.customAlias.vars.id }}');
+        const previewElement = document.getElementById('preview');
+
+        function updatePreview() {
+            const longUrl = longUrlInput.value;
+            const customAlias = customAliasInput.value;
+
+            if (!longUrl) {
+                previewElement.innerHTML = 'Введите URL чтобы увидеть предпросмотр короткой ссылки';
+                return;
+            }
+
+            let shortCode = customAlias || 'xxxxxx';
+            let shortUrl = window.location.origin + '/' + shortCode;
+
+            previewElement.innerHTML = `
+            <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 500; color: #2d3748;">Короткая ссылка:</div>
+                        <div style="color: #667eea; font-size: 18px; margin-top: 5px;">${shortUrl}</div>
+                    </div>
+                    <div style="width: 100px; height: 100px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <div style="text-align: center; color: #9ca3af;">
+                            <i class="fas fa-qrcode" style="font-size: 32px;"></i>
+                            <div style="font-size: 12px; margin-top: 5px;">QR код</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+                    <div style="font-weight: 500; color: #2d3748; margin-bottom: 5px;">Оригинальный URL:</div>
+                    <div style="color: #718096; font-size: 14px; overflow: hidden; text-overflow: ellipsis;">${longUrl}</div>
+                </div>
+            </div>
+        `;
+        }
+
+        longUrlInput.addEventListener('input', updatePreview);
+        customAliasInput.addEventListener('input', updatePreview);
+
+        // Initialize preview
+        updatePreview();
+    </script>
+{% endblock %}

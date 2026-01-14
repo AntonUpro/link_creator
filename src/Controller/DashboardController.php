@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Dto\CreateShortUrl;
 use App\Entity\LinkClick;
 use App\Entity\ShortUrl;
 use App\Form\ShortUrlType;
+use App\Service\ShortUrlService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,6 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DashboardController extends AbstractController
 {
     public function __construct(
+        private ShortUrlService $shortUrlService,
         private EntityManagerInterface $entityManager
     ) {}
 
@@ -51,17 +54,21 @@ class DashboardController extends AbstractController
     #[Route('/create', name: 'app_dashboard_create')]
     public function create(Request $request): Response
     {
-        $shortUrl = new ShortUrl();
-        $form = $this->createForm(ShortUrlType::class, $shortUrl);
+        $form = $this->createForm(ShortUrlType::class);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $shortUrl->setUser($this->getUser());
 
-            // Установите остальные поля (shortCode и т.д.)
-
-            $this->entityManager->persist($shortUrl);
-            $this->entityManager->flush();
+            $this->shortUrlService->createShortLink(
+                new CreateShortUrl(
+                    url:  $form->get('longUrl')->getData(),
+                    customAlias: $form->get('customAlias')->getData(),
+                    user: $this->getUser(),
+                    expiresAt: $form->get('expiresAt')->getData(),
+                    password: null,
+                    isActive:  $form->get('isActive')->getData(),
+                ),
+            );
 
             $this->addFlash('success', 'Ссылка успешно создана!');
 

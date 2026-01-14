@@ -2,6 +2,12 @@
 
 {% block title %}Сокращение ссылок — QuickLink{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/home.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/qr-code.css') }}">
+{% endblock %}
+
 {% block javascripts %}
     {{ parent() }}
     <script>

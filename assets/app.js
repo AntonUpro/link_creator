@@ -1,4 +1,5 @@
 import './stimulus_bootstrap.js';
+import ClipboardJS from 'clipboard';
 /*
  * Welcome to your app's main JavaScript file!
  *

@@ -1,0 +1,698 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Редактировать ссылку - GoLink{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .edit-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #667eea;
+            text-decoration: none;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-help {
+            font-size: 14px;
+            color: #718096;
+            margin-top: 6px;
+        }
+
+        .stats-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+        }
+
+        .btn-danger:hover {
+            background: #fecaca;
+        }
+
+        .url-preview {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .short-url {
+            color: #667eea;
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .long-url {
+            color: #718096;
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .readonly-input {
+            background: #f8fafc;
+            border-color: #cbd5e0;
+            color: #4a5568;
+            cursor: not-allowed;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-expired {
+            background: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="edit-container">
+        <a href="{{ path('app_dashboard') }}" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            Вернуться к списку ссылок
+        </a>
+
+        <div class="form-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <div>
+                    <h1 style="font-size: 32px; margin-bottom: 10px; color: #2d3748;">Редактировать ссылку</h1>
+                    <p style="color: #718096;">ID: #{{ short_url.id }}</p>
+                </div>
+                <div>
+                <span class="status-badge {{ short_url.isActive ? 'status-active' : 'status-inactive' }} {{ short_url.isExpired ? 'status-expired' : '' }}">
+                    <i class="fas fa-{{ short_url.isActive ? 'check-circle' : 'ban' }} {{ short_url.isExpired ? 'fa-clock' : '' }}"></i>
+                    {{ short_url.isActive ? (short_url.isExpired ? 'Истекла' : 'Активна') : 'Неактивна' }}
+                </span>
+                </div>
+            </div>
+
+            <!-- URL Preview -->
+            <div class="url-preview">
+                <div class="short-url">
+                    <a href="{{ short_url.shortUrl }}" target="_blank" style="color: inherit; text-decoration: none;">
+                        {{ short_url.shortUrl }}
+                        <i class="fas fa-external-link-alt" style="font-size: 14px; margin-left: 5px;"></i>
+                    </a>
+                    <button onclick="copyToClipboard('{{ short_url.shortUrl }}', this)" style="background: none; border: none; color: #667eea; cursor: pointer; margin-left: 10px;">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <div class="long-url">{{ short_url.longUrl }}</div>
+            </div>
+
+            {{ form_start(form, {'attr': {'id': 'editLinkForm', 'data-id': short_url.id}}) }}
+
+            <div class="form-group">
+                {{ form_label(form.longUrl) }}
+                {{ form_widget(form.longUrl, {'attr': {'class': 'form-control'}}) }}
+                <div class="form-help">Измените оригинальный URL назначения</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Короткий код</label>
+                <input type="text"
+                       class="form-control readonly-input"
+                       value="{{ short_url.shortCode }}"
+                       readonly>
+                <div class="form-help">Короткий код нельзя изменить после создания</div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.customAlias) }}
+                {{ form_widget(form.customAlias, {'attr': {'class': 'form-control', 'placeholder': 'Оставьте пустым чтобы удалить кастомный алиас'}}) }}
+                <div class="form-help">Измените или удалите пользовательский алиас</div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.expiresAt) }}
+                {{ form_widget(form.expiresAt, {'attr': {'class': 'form-control'}}) }}
+                <div class="form-help">Установите дату истечения срока действия ссылки</div>
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                {{ form_widget(form.isActive, {'attr': {'style': 'width: auto;'}}) }}
+                {{ form_label(form.isActive) }}
+            </div>
+
+            <!-- Статистика -->
+            <div class="stats-section">
+                <div style="font-size: 18px; font-weight: 600; margin-bottom: 15px; color: #2d3748;">
+                    <i class="fas fa-chart-bar" style="margin-right: 10px;"></i>
+                    Статистика ссылки
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ short_url.clicks }}</div>
+                        <div class="stat-label">Всего кликов</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ short_url.createdAt|date('d.m.Y') }}</div>
+                        <div class="stat-label">Создана</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ short_url.updatedAt|date('d.m.Y') }}</div>
+                        <div class="stat-label">Обновлена</div>
+                    </div>
+                    {% if short_url.expiresAt %}
+                        <div class="stat-item">
+                            <div class="stat-value {{ short_url.isExpired ? 'text-danger' : '' }}">
+                                {{ short_url.expiresAt|date('d.m.Y') }}
+                            </div>
+                            <div class="stat-label">Истекает</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-secondary" onclick="window.location.href = '{{ path('app_dashboard') }}'">
+                    <i class="fas fa-times"></i>
+                    Отмена
+                </button>
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <i class="fas fa-save"></i>
+                    Сохранить изменения
+                </button>
+            </div>
+
+            {{ form_end(form) }}
+
+            <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #e2e8f0;">
+                <div style="font-size: 18px; font-weight: 600; margin-bottom: 15px; color: #2d3748;">
+                    <i class="fas fa-exclamation-triangle" style="margin-right: 10px; color: #f59e0b;"></i>
+                    Опасные действия
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <button type="button" class="btn btn-danger" onclick="showResetStatsModal()">
+                        <i class="fas fa-redo"></i>
+                        Сбросить статистику
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="showDeleteModal()">
+                        <i class="fas fa-trash"></i>
+                        Удалить ссылку
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно сброса статистики -->
+    <div class="modal" id="resetStatsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin: 0;">Сбросить статистику</h3>
+                <button onclick="closeResetStatsModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #718096;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите сбросить статистику для этой ссылки?</p>
+                <p><strong>Это действие:</strong></p>
+                <ul style="color: #718096; margin: 10px 0 20px 20px;">
+                    <li>Обнулит счетчик кликов ({{ short_url.clicks }} кликов)</li>
+                    <li>Удалит всю историю переходов</li>
+                    <li>Не может быть отменено</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeResetStatsModal()" class="btn btn-secondary">
+                    Отмена
+                </button>
+                <button onclick="resetStats()" class="btn btn-danger">
+                    Сбросить статистику
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно удаления -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin: 0;">Удалить ссылку</h3>
+                <button onclick="closeDeleteModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #718096;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить эту ссылку?</p>
+                <p><strong>Это действие:</strong></p>
+                <ul style="color: #718096; margin: 10px 0 20px 20px;">
+                    <li>Удалит короткую ссылку: {{ short_url.shortUrl }}</li>
+                    <li>Удалит всю статистику и историю переходов</li>
+                    <li>Удалит QR код (если есть)</li>
+                    <li>Не может быть отменено</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeDeleteModal()" class="btn btn-secondary">
+                    Отмена
+                </button>
+                <button onclick="deleteLink()" class="btn btn-danger">
+                    Удалить ссылку
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Копирование в буфер обмена
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(function() {
+                const originalIcon = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                button.style.color = '#10b981';
+
+                setTimeout(function() {
+                    button.innerHTML = originalIcon;
+                    button.style.color = '';
+                }, 2000);
+            });
+        }
+
+        // Модальные окна
+        function showResetStatsModal() {
+            document.getElementById('resetStatsModal').classList.add('open');
+        }
+
+        function closeResetStatsModal() {
+            document.getElementById('resetStatsModal').classList.remove('open');
+        }
+
+        function showDeleteModal() {
+            document.getElementById('deleteModal').classList.add('open');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('open');
+        }
+
+        // AJAX отправка формы
+        {#document.getElementById('editLinkForm').addEventListener('submit', function(e) {#}
+        {#    e.preventDefault();#}
+
+        {#    const formData = new FormData(this);#}
+        {#    const submitBtn = document.getElementById('submitBtn');#}
+        {#    const originalText = submitBtn.innerHTML;#}
+
+        {#    // Показываем индикатор загрузки#}
+        {#    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сохранение...';#}
+        {#    submitBtn.disabled = true;#}
+
+        {#    // Отправляем AJAX запрос#}
+        {#    fetch(this.action, {#}
+        {#        method: 'POST',#}
+        {#        body: formData,#}
+        {#        headers: {#}
+        {#            'X-Requested-With': 'XMLHttpRequest'#}
+        {#        }#}
+        {#    })#}
+        {#        .then(response => response.json())#}
+        {#        .then(data => {#}
+        {#            if (data.success) {#}
+        {#                // Показываем уведомление об успехе#}
+        {#                showNotification('Изменения успешно сохранены!', 'success');#}
+
+        {#                // Обновляем данные на странице без перезагрузки#}
+        {#                updatePageData(data.data);#}
+
+        {#                // Возвращаем кнопку в исходное состояние#}
+        {#                setTimeout(() => {#}
+        {#                    submitBtn.innerHTML = originalText;#}
+        {#                    submitBtn.disabled = false;#}
+        {#                }, 1000);#}
+        {#            } else {#}
+        {#                // Показываем ошибки#}
+        {#                if (data.errors) {#}
+        {#                    Object.keys(data.errors).forEach(field => {#}
+        {#                        const input = document.getElementById('{{ form.vars.name }}_' + field);#}
+        {#                        if (input) {#}
+        {#                            input.style.borderColor = '#ef4444';#}
+        {#                            showError(input, data.errors[field]);#}
+        {#                        }#}
+        {#                    });#}
+        {#                }#}
+        {#                showNotification(data.error || 'Ошибка при сохранении', 'error');#}
+        {#                submitBtn.innerHTML = originalText;#}
+        {#                submitBtn.disabled = false;#}
+        {#            }#}
+        {#        })#}
+        {#        .catch(error => {#}
+        {#            console.error('Error:', error);#}
+        {#            showNotification('Произошла ошибка при сохранении', 'error');#}
+        {#            submitBtn.innerHTML = originalText;#}
+        {#            submitBtn.disabled = false;#}
+        {#        });#}
+        {#});#}
+
+        // Обновление данных на странице
+        function updatePageData(data) {
+            // Обновляем статус
+            const statusBadge = document.querySelector('.status-badge');
+            if (statusBadge && data.is_active !== undefined) {
+                statusBadge.className = 'status-badge ' +
+                    (data.is_active ? 'status-active' : 'status-inactive') +
+                    (data.is_expired ? ' status-expired' : '');
+
+                statusBadge.innerHTML = '<i class="fas fa-' +
+                    (data.is_active ? (data.is_expired ? 'clock' : 'check-circle') : 'ban') +
+                    '"></i> ' +
+                    (data.is_active ? (data.is_expired ? 'Истекла' : 'Активна') : 'Неактивна');
+            }
+
+            // Обновляем дату истечения если есть
+            if (data.expires_at) {
+                const expiresElement = document.querySelector('.stat-item:nth-child(4) .stat-value');
+                if (expiresElement) {
+                    expiresElement.textContent = new Date(data.expires_at).toLocaleDateString('ru-RU');
+                    if (data.is_expired) {
+                        expiresElement.classList.add('text-danger');
+                    } else {
+                        expiresElement.classList.remove('text-danger');
+                    }
+                }
+            }
+
+            // Обновляем дату обновления
+            const updatedElement = document.querySelector('.stat-item:nth-child(3) .stat-value');
+            if (updatedElement && data.updated_at) {
+                updatedElement.textContent = new Date(data.updated_at).toLocaleDateString('ru-RU');
+            }
+        }
+
+        // Показать ошибку валидации
+        function showError(input, message) {
+            // Удаляем старые ошибки
+            const existingError = input.parentNode.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+
+            // Добавляем новую ошибку
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.style.color = '#ef4444';
+            errorDiv.style.fontSize = '14px';
+            errorDiv.style.marginTop = '5px';
+            errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + message;
+
+            input.parentNode.appendChild(errorDiv);
+        }
+
+        // Сброс статистики
+        function resetStats() {
+            const linkId = document.getElementById('editLinkForm').dataset.id;
+
+            fetch(`/dashboard/links/${linkId}/reset-stats`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Статистика успешно сброшена!', 'success');
+                        closeResetStatsModal();
+
+                        // Обновляем счетчик кликов на странице
+                        const clicksElement = document.querySelector('.stat-item:nth-child(1) .stat-value');
+                        if (clicksElement) {
+                            clicksElement.textContent = '0';
+                        }
+
+                        // Обновляем в форме если она еще открыта
+                        const form = document.getElementById('editLinkForm');
+                        if (form) {
+                            form.dataset.clicks = '0';
+                        }
+                    } else {
+                        showNotification(data.error || 'Ошибка при сбросе статистики', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Произошла ошибка', 'error');
+                });
+        }
+
+        // Удаление ссылки
+        function deleteLink() {
+            const linkId = document.getElementById('editLinkForm').dataset.id;
+
+            fetch(`/dashboard/links/${linkId}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Ссылка успешно удалена!', 'success');
+                        closeDeleteModal();
+
+                        // Перенаправляем на dashboard через 1 секунду
+                        setTimeout(() => {
+                            window.location.href = '{{ path('app_dashboard') }}';
+                        }, 1000);
+                    } else {
+                        showNotification(data.error || 'Ошибка при удалении', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Произошла ошибка', 'error');
+                });
+        }
+
+        // Уведомления
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `
+            <div style="position: fixed; top: 20px; right: 20px; background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                         color: white; padding: 15px 25px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                         z-index: 9999; display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease-out;">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+                <button onclick="this.parentElement.parentElement.remove()" style="margin-left: 15px; background: none; border: none; color: white; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        // Анимация уведомлений
+        const style = document.createElement('style');
+        style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    `;
+        document.head.appendChild(style);
+    </script>
+{% endblock %}

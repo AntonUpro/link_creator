@@ -1,115 +1,3 @@
-:root {
-    --primary: #4361ee;
-    --primary-dark: #3a56d4;
-    --secondary: #7209b7;
-    --success: #4cc9f0;
-    --danger: #f72585;
-    --light: #f8f9fa;
-    --dark: #212529;
-    --gray: #6c757d;
-    --border: #e9ecef;
-    --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    --radius: 16px;
-    --radius-sm: 8px;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    color: var(--dark);
-    line-height: 1.6;
-    min-height: 100vh;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* Навигация */
-.navbar {
-    background: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-.navbar .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 18px 20px;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--dark);
-    text-decoration: none;
-    font-family: 'Poppins', sans-serif;
-}
-
-.logo i {
-    margin-right: 10px;
-    color: var(--primary);
-}
-
-.logo-accent {
-    color: var(--primary);
-}
-
-.nav-links {
-    display: flex;
-    gap: 30px;
-    align-items: center;
-}
-
-.nav-links a {
-    text-decoration: none;
-    color: var(--gray);
-    font-weight: 500;
-    transition: color 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.nav-links a:hover {
-    color: var(--primary);
-}
-
-.btn-outline {
-    border: 2px solid var(--primary);
-    color: var(--primary);
-    padding: 8px 20px;
-    border-radius: var(--radius-sm);
-    transition: all 0.3s;
-}
-
-.btn-outline:hover {
-    background: var(--primary);
-    color: white;
-}
-
-.menu-toggle {
-    display: none;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: var(--dark);
-    cursor: pointer;
-}
-
 /* Герой-секция */
 .hero {
     padding: 80px 0 60px;
@@ -126,62 +14,6 @@ body {
     line-height: 1.2;
 }
 
-.subtitle {
-    font-size: 1.2rem;
-    color: var(--gray);
-    max-width: 700px;
-    margin: 0 auto 40px;
-}
-
-/* Форма сокращения */
-.shortener-card {
-    background: white;
-    border-radius: var(--radius);
-    padding: 40px;
-    box-shadow: var(--shadow);
-    margin-bottom: 40px;
-}
-
-.input-group {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 25px;
-}
-
-.input-group input {
-    flex: 1;
-    padding: 18px 25px;
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: 1rem;
-    transition: all 0.3s;
-}
-
-.input-group input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
-}
-
-.btn-primary {
-    background: linear-gradient(90deg, var(--primary), var(--primary-dark));
-    color: white;
-    border: none;
-    padding: 18px 35px;
-    border-radius: var(--radius-sm);
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: transform 0.3s, box-shadow 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
-}
 
 .advanced-options {
     display: grid;
@@ -239,51 +71,6 @@ body {
     flex-wrap: wrap;
 }
 
-.short-url {
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: var(--primary);
-    text-decoration: none;
-}
-
-.btn-secondary {
-    background: white;
-    color: var(--primary);
-    border: 2px solid var(--primary);
-    padding: 10px 20px;
-    border-radius: var(--radius-sm);
-    font-weight: 500;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s;
-}
-
-.btn-secondary:hover {
-    background: var(--primary);
-    color: white;
-}
-
-.btn-icon {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background: white;
-    border: 2px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--gray);
-    text-decoration: none;
-    transition: all 0.3s;
-}
-
-.btn-icon:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-    transform: translateY(-3px);
-}
 
 /* Статистика героя */
 .hero-stats {
@@ -487,10 +274,6 @@ body {
     line-height: 1.5;
 }
 
-.features {
-    margin-top: 50px;
-}
-
 .api-features ul {
     list-style: none;
     margin: 25px 0;
@@ -505,18 +288,6 @@ body {
 
 .api-features i.fa-check {
     color: var(--success);
-}
-
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
 }
 
 /* Адаптивность */
@@ -545,40 +316,6 @@ body {
 }
 
 @media (max-width: 768px) {
-    .nav-links {
-        position: fixed;
-        top: 70px;
-        left: 0;
-        right: 0;
-        background: white;
-        flex-direction: column;
-        padding: 20px;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        transform: translateY(-100%);
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s;
-    }
-
-    .nav-links.active {
-        transform: translateY(0);
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .menu-toggle {
-        display: block;
-    }
-
-    .input-group {
-        flex-direction: column;
-    }
-
-    .btn-primary {
-        width: 100%;
-        justify-content: center;
-    }
-
     .steps {
         flex-direction: column;
         gap: 20px;
@@ -721,23 +458,6 @@ input:invalid {
     border-color: var(--danger) !important;
 }
 
-.error-message {
-    color: var(--danger);
-    font-size: 0.85rem;
-    margin-top: 5px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-/* Уведомления */
-.notification.error {
-    border-left-color: var(--danger);
-}
-
-.notification.error i {
-    color: var(--danger);
-}
 
 /* Адаптивность для AJAX элементов */
 @media (max-width: 768px) {
