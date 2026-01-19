@@ -169,7 +169,8 @@ final class HomeController extends AbstractController
     #[Route('/qr/{shortCode}', name: 'app_qr_code', methods: ['GET'])]
     public function getQrCode(string $shortCode): Response
     {
-        $fileName = basename($shortCode) . '.png';
+        $url = $this->shortUrlRepository->findActiveByShortCode($shortCode);
+        $fileName = basename($url->getQrCodePath());
         $fullPath = __DIR__ . '/../../public/uploads/qr-codes/' . $fileName;
         if (!file_exists($fullPath)) {
             throw new FileNotFoundException("QR code не найден: {$fileName}");

@@ -108,6 +108,20 @@ class DashboardController extends AbstractController
         ]);
     }
 
+    #[Route('/delete/{id}', name: 'app_dashboard_delete', methods: ['DELETE'])]
+    public function delete(ShortUrl $shortUrl, Request $request): Response
+    {
+        // Проверяем, что ссылка принадлежит пользователю
+        if ($shortUrl->getUser() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('У вас нет доступа к этой ссылке');
+        }
+
+        $this->entityManager->remove($shortUrl);
+        $this->entityManager->flush();
+
+        return $this->json(['success' => true]);
+    }
+
     /**
      * Статистика по ссылке
      */

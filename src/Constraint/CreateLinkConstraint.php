@@ -34,7 +34,8 @@ class CreateLinkConstraint
                 new Assert\GreaterThan('now')
             ]),
             'password' => new Assert\Collection([
-                new Assert\Count(min: 4, max: 100),
+                new Assert\Type(type: 'string'),
+//                new Assert\NoRequirement(),
             ]),
         ]);
     }

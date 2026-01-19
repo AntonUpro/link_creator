@@ -250,6 +250,21 @@ body {
     text-decoration: none;
 }
 
+.hero {
+    padding: 80px 0 60px;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: 3.2rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.2;
+}
+
 @keyframes slideIn {
     from {
         transform: translateX(100%);
@@ -312,4 +327,468 @@ body {
     display: flex;
     align-items: center;
     gap: 5px;
+}
+
+/* Герой-секция */
+
+.advanced-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    text-align: left;
+}
+
+.option label {
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.option input, .option select {
+    width: 100%;
+    padding: 12px 18px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+}
+
+.result-content {
+    flex: 1; /* Занимает всё оставшееся пространство */
+    min-width: 0; /* Для корректного переноса текста */
+}
+
+/* Результат */
+.result {
+    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+    border-radius: var(--radius-sm);
+    padding: 25px;
+    margin-top: 30px;
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 20px;
+    box-sizing: border-box; /* Учитываем padding в ширине */
+    animation: fadeInUp 0.5s ease;
+}
+
+.success-icon {
+    font-size: 2.5rem;
+    color: var(--success);
+    margin-top: 5px;
+}
+
+.short-url-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+
+/* Статистика героя */
+.hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    margin-top: 60px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat strong {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    display: block;
+}
+
+.stat span {
+    color: var(--gray);
+    font-size: 0.95rem;
+}
+
+/* Недавние ссылки */
+.recent-links-section {
+    padding: 60px 0;
+    background: white;
+}
+
+.recent-links-section .section-title {
+    text-align: left;
+    margin-bottom: 30px;
+}
+
+.recent-links-container {
+    background: white;
+    border-radius: var(--radius);
+    padding: 25px;
+    box-shadow: var(--shadow);
+}
+
+.recent-link-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s;
+}
+
+.recent-link-item:hover {
+    background: #f8f9fa;
+}
+
+.recent-link-item:last-child {
+    border-bottom: none;
+}
+
+.recent-link-info {
+    flex: 1;
+}
+
+.recent-link-original {
+    color: var(--gray);
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    word-break: break-all;
+}
+
+.recent-link-short {
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.recent-link-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.8rem;
+    color: var(--gray);
+    margin-top: 5px;
+}
+
+.recent-link-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Разделитель */
+.divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin: 30px 0;
+}
+
+/* Особенности */
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 50px;
+    font-weight: 700;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin-bottom: 80px;
+}
+
+.feature-card {
+    background: white;
+    padding: 30px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: transform 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+}
+
+.feature-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+/* Шаги */
+.steps {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-bottom: 80px;
+}
+
+.step {
+    text-align: center;
+    max-width: 200px;
+}
+
+.step-number {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0 auto 20px;
+}
+
+.step-arrow {
+    font-size: 2rem;
+    color: var(--gray);
+}
+
+/* API секция */
+.api-section {
+    background: white;
+    padding: 80px 0;
+}
+
+.api-demo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+}
+
+.code-block {
+    background: #1e1e1e;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.code-block pre {
+    padding: 30px;
+    overflow-x: auto;
+}
+
+.code-block code {
+    color: #d4d4d4;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.api-features ul {
+    list-style: none;
+    margin: 25px 0;
+}
+
+.api-features li {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.api-features i.fa-check {
+    color: var(--success);
+}
+
+/* Адаптивность */
+@media (max-width: 992px) {
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+
+    .api-demo {
+        grid-template-columns: 1fr;
+    }
+
+    .advanced-options {
+        grid-template-columns: 1fr;
+    }
+
+    .recent-link-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .recent-link-actions {
+        align-self: flex-end;
+    }
+}
+
+@media (max-width: 768px) {
+    .steps {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .step-arrow {
+        transform: rotate(90deg);
+    }
+}
+
+/* Стили для AJAX функциональности */
+
+/* Индикатор загрузки */
+.loading-spinner {
+    text-align: center;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(67, 97, 238, 0.2);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-spinner p {
+    color: var(--gray);
+    font-size: 0.95rem;
+}
+
+/* Результат с анимацией */
+.result {
+    animation: fadeInUp 0.5s ease;
+    margin-top: 20px;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Мета-информация результата */
+.result-meta {
+    display: flex;
+    gap: 20px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--gray);
+}
+
+.result-meta span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.result-meta i {
+    font-size: 0.9rem;
+}
+
+/* Подсказки */
+.hint {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.8rem;
+    color: var(--gray);
+}
+
+/* Секция недавних ссылок */
+.recent-link-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s;
+}
+
+.recent-link-item:hover {
+    background: #f8f9fa;
+}
+
+.recent-link-item:last-child {
+    border-bottom: none;
+}
+
+.recent-link-info {
+    flex: 1;
+}
+
+.recent-link-original {
+    color: var(--gray);
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    word-break: break-all;
+}
+
+.recent-link-short {
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.recent-link-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.8rem;
+    color: var(--gray);
+    margin-top: 5px;
+}
+
+.recent-link-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Статистика в реальном времени */
+.stat-counter {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    transition: all 0.5s ease;
+}
+
+/* Валидация формы */
+input:invalid {
+    border-color: var(--danger) !important;
+}
+
+
+/* Адаптивность для AJAX элементов */
+@media (max-width: 768px) {
+    .result-meta {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .recent-link-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .recent-link-actions {
+        align-self: flex-end;
+    }
 }

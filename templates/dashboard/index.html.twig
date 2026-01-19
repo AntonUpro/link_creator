@@ -467,7 +467,7 @@ https://example.com/page3,
         // Delete link
         function deleteLink(linkId) {
             if (confirm('Вы уверены, что хотите удалить эту ссылку?')) {
-                fetch(`/dashboard/links/${linkId}/delete`, {
+                fetch(`/dashboard/delete/${linkId}`, {
                     method: 'DELETE',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
